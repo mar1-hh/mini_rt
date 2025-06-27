@@ -77,5 +77,7 @@ typedef struct s_minirt
 
 void	draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
 void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
+int	is_valide_float(char *str);
+double	ft_atof(char *str);
 
 #endif

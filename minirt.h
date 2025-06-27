@@ -5,21 +5,67 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
+# include <libft/libft.h>
+# include <gnl/get_next_line.h>
 # include <mlx.h>
 
 typedef enum    e_types
 {
-	sp
+	AMBIENT,
+	CAMERA,
+	LIGHT,
+	SPHERE,
+	PLANE,
+	CYLINDER,
 }   t_types;
+
+typedef struct s_object
+{
+	t_types	type;
+	float		x;
+	float		y;
+	float		z;
+	float		diameter;
+	unsigned int	colore;
+	struct s_object *next;
+}   t_object;
+
+typedef struct s_ambiant
+{
+	float		ratio;
+	unsigned int	color;
+}   t_ambient;
+
+typedef struct s_camera
+{
+	float		x;
+	float		y;
+	float		z;
+	float		fov;
+}   t_camera;
+typedef struct s_light
+{
+	float		x;
+	float		y;
+	float		z;
+	float		ratio;
+	unsigned int	color;
+}   t_light;
 
 typedef struct s_minirt
 {
-	t_types type;
-	float	x;
-	float	y;
-	float	z;
-	float	diameter;
-	unsigned int	colore;
+	t_object	*objects;
+	t_ambient	ambient;
+	t_camera	camera;
+	t_light		light;
+
+
+
+
+
+
+
+
 	void	*img;
 	void	*mlx;
 	void	*mlx_window;

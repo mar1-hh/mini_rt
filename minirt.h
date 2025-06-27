@@ -26,14 +26,21 @@ typedef struct s_object
 	float		y;
 	float		z;
 	float		diameter;
-	unsigned int	colore;
+	int R;
+	int G;
+	int B;
+	float		normal_x;
+	float		normal_y;
+	float		normal_z;
 	struct s_object *next;
 }   t_object;
 
 typedef struct s_ambiant
 {
 	float		ratio;
-	unsigned int	color;
+	int R;
+	int G;
+	int B;
 }   t_ambient;
 
 typedef struct s_camera
@@ -41,6 +48,9 @@ typedef struct s_camera
 	float		x;
 	float		y;
 	float		z;
+	float		normal_x;
+	float		normal_y;
+	float		normal_z;
 	float		fov;
 }   t_camera;
 typedef struct s_light
@@ -49,8 +59,10 @@ typedef struct s_light
 	float		y;
 	float		z;
 	float		ratio;
-	unsigned int	color;
-}   t_light;
+	int R;
+	int G;
+	int B;
+	}   t_light;
 
 typedef struct s_minirt
 {

@@ -46,6 +46,12 @@ typedef struct	s_vector
 	float	z;
 }	t_vector;
 
+typedef struct	s_ray
+{
+	t_vector	*origine;
+	t_vector	*dir;
+}	t_ray;
+
 
 typedef struct s_ambiant
 {
@@ -57,9 +63,7 @@ typedef struct s_ambiant
 
 typedef struct s_camera
 {
-	float		x;
-	float		y;
-	float		z;
+	t_vector	*org;
 	float		normal_x;
 	float		normal_y;
 	float		normal_z;
@@ -95,5 +99,6 @@ void	draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
 void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
 int	is_valide_float(char *str);
 double	ft_atof(char *str);
+t_vector	*normalize(t_vector dir);
 
 #endif

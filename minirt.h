@@ -10,6 +10,9 @@
 // # include <gnl/get_next_line.h>
 # include <mlx.h>
 
+# define HEIGHT 800
+# define WIDTH 800
+
 typedef enum    e_types
 {
 	AMBIENT,

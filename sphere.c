@@ -18,3 +18,4 @@ void draw_circle(t_minirt *data, int cx, int cy, float radius, int color)
         y++;
     }
 }
+

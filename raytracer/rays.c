@@ -102,18 +102,14 @@ float intersect_plane(t_minirt *data, t_vec3 ray_direction, int i, int j)
 {
     float denom = dot(data->objects->normal, ray_direction);
 
-    // Ray is parallel to plane
     if (fabs(denom) < 1e-6)
         return -1;
 
-    t_vec3 p0l0 = sub_vec(data->objects->origin, data->camera.origin);
-    float t = dot(data->objects->origin, p0l0) / denom;
-
-    // Intersection behind the ray origin
+    t_vec3 L = sub_vec(data->objects->origin, data->camera.origin);
+    float t = dot(data->objects->origin, L) / denom;
     if (t < 0)
         return -1;
-
-    return t; // Valid hit distance
+    return t;
 }
 t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
 {
@@ -129,7 +125,7 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
             distance = intersect_sphere(data, ray_direction, x, y);
         }
         else if (current->type == PLANE) {
-            // new_point = intersect_plane();
+            distance = intersect_plane(data, ray_direction);
         }
         else if (current->type == CYLINDER) {
             // new_point = intersect_cylinder();

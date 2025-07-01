@@ -33,13 +33,13 @@ void parse_light(char *line, t_light *light)
 		line++;
 	while (ft_isspace(*line))
 		line++;
-	light->x = atof(line);
+	light->origin.x = atof(line);
 	if (*line == ',')
 		line++;
-	light->y = atof(line);
+	light->origin.y = atof(line);
 	if (*line == ',')
 		line++;
-	light->z = atof(line);
+	light->origin.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
 	light->ratio = atof(line);
@@ -60,22 +60,22 @@ void parse_camera(char *line, t_camera *camera)
 		line++;
 	while (ft_isspace(*line))
 		line++;
-	camera->x = atof(line);
+	camera->origin.x = atof(line);
 	if (*line == ',')
 		line++;
-	camera->y = atof(line);
+	camera->origin.y = atof(line);
 	if (*line == ',')
 		line++;
-	camera->z = atof(line);
+	camera->origin.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
-	camera->normal_x = atof(line);
+	camera->normal.x = atof(line);
 	if (*line == ',')
 		line++;
-	camera->normal_y = atof(line);
+	camera->normal.y = atof(line);
 	if (*line == ',')
 		line++;
-	camera->normal_z = atof(line);
+	camera->normal.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
 	camera->fov = atof(line);
@@ -87,22 +87,22 @@ void parse_plane(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->x = atof(line);
+	object->origin.x = atof(line);
 	if (*line == ',')
 		line++;
-	object->y = atof(line);
+	object->origin.y = atof(line);
 	if (*line == ',')
 		line++;
-	object->z = atof(line);
+	object->origin.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
-	object->normal_x = atof(line);
+	object->normal.x = atof(line);
 	if (*line == ',')
 		line++;
-	object->normal_y = atof(line);
+	object->normal.y = atof(line);
 	if (*line == ',')
 		line++;
-	object->normal_z = atof(line);
+	object->normal.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
 	object->R = atoi(line);
@@ -120,13 +120,13 @@ void parse_sphere(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->x = atof(line);
+	object->origin.x = atof(line);
 	if (*line == ',')
 		line++;
-	object->y = atof(line);
+	object->origin.y = atof(line);
 	if (*line == ',')
 		line++;
-	object->z = atof(line);
+	object->origin.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
 	object->diameter = atof(line);
@@ -147,25 +147,25 @@ void parse_cylinder(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->x = atof(line);
+	object->origin.x = atof(line);
 	if (*line == ',')
 		line++;
-	object->y = atof(line);
+	object->origin.y = atof(line);
 	if (*line == ',')
 		line++;
-	object->z = atof(line);
+	object->origin.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
 	object->diameter = atof(line);
 	while (ft_isspace(*line))
 		line++;
-	object->normal_x = atof(line);
+	object->normal.x = atof(line);
 	if (*line == ',')
 		line++;
-	object->normal_y = atof(line);
+	object->normal.y = atof(line);
 	if (*line == ',')
 		line++;
-	object->normal_z = atof(line);
+	object->normal.z = atof(line);
 	while (ft_isspace(*line))
 		line++;
 	object->R = atoi(line);

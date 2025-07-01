@@ -5,10 +5,12 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
+# include "gnl/get_next_line.h"
 # include <math.h>
 // # include <libft/libft.h>
 // # include <gnl/get_next_line.h>
 # include <mlx.h>
+#define MAX_F (1.0f / 0.0f)
 
 # define HEIGHT 800
 # define WIDTH 800
@@ -23,19 +25,22 @@ typedef enum    e_types
 	CYLINDER,
 }   t_types;
 
+typedef struct s_vec3
+{
+	float x;
+	float y;
+	float z;
+}   t_vec3;
+
 typedef struct s_object
 {
 	t_types	type;
-	float		x;
-	float		y;
-	float		z;
+	t_vec3	origin;
 	float		diameter;
 	int R;
 	int G;
 	int B;
-	float		normal_x;
-	float		normal_y;
-	float		normal_z;
+	t_vec3	normal;
 	struct s_object *next;
 }   t_object;
 
@@ -63,17 +68,14 @@ typedef struct s_ambiant
 
 typedef struct s_camera
 {
+	t_vec3	origin;
+	t_vec3	normal;
 	t_vector	*org;
-	float		normal_x;
-	float		normal_y;
-	float		normal_z;
 	float		fov;
 }   t_camera;
 typedef struct s_light
 {
-	float		x;
-	float		y;
-	float		z;
+	t_vec3	origin;
 	float		ratio;
 	int R;
 	int G;
@@ -99,6 +101,5 @@ void	draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
 void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
 int	is_valide_float(char *str);
 double	ft_atof(char *str);
-t_vector	*normalize(t_vector dir);
 
 #endif

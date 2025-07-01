@@ -10,6 +10,20 @@ float	scale_x_y(float num)
 	return (res - 1);
 }
 
+void	intersection(t_minirt *data)
+{
+	t_object	*obj;
+
+	obj = data->objects;
+	while (obj)
+	{
+		if (obj->type == SPHERE)
+		{
+			
+		}
+	}
+}
+
 void    start_rt(t_minirt *data)
 {
 	int i;

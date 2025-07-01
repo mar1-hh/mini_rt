@@ -7,7 +7,7 @@ void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data)
     ptr = data->addr + (y * data->line_length + x * (data->bits_per_pexel / 8));
     *(unsigned int*)ptr = color;
 }
-s
+
 void    init_data(t_minirt *data)
 {
     data->mlx = mlx_init();

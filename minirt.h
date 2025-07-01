@@ -5,10 +5,16 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
-# include <libft/libft.h>
-# include <gnl/get_next_line.h>
+# include "gnl/get_next_line.h"
+# include <math.h>
+// # include <libft/libft.h>
+// # include <gnl/get_next_line.h>
 # include <mlx.h>
 #define MAX_F (1.0f / 0.0f)
+
+# define HEIGHT 800
+# define WIDTH 800
+
 typedef enum    e_types
 {
 	AMBIENT,
@@ -38,6 +44,20 @@ typedef struct s_object
 	struct s_object *next;
 }   t_object;
 
+typedef struct	s_vector
+{
+	float	x;
+	float	y;
+	float	z;
+}	t_vector;
+
+typedef struct	s_ray
+{
+	t_vector	*origine;
+	t_vector	*dir;
+}	t_ray;
+
+
 typedef struct s_ambiant
 {
 	float		ratio;
@@ -50,6 +70,7 @@ typedef struct s_camera
 {
 	t_vec3	origin;
 	t_vec3	normal;
+	t_vector	*org;
 	float		fov;
 }   t_camera;
 typedef struct s_light
@@ -67,14 +88,6 @@ typedef struct s_minirt
 	t_ambient	ambient;
 	t_camera	camera;
 	t_light		light;
-
-
-
-
-
-
-
-
 	void	*img;
 	void	*mlx;
 	void	*mlx_window;

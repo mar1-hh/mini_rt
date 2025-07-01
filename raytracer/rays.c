@@ -153,12 +153,12 @@ void rays_setup(t_minirt *data)
         {
             t_vec3 dir_ray = generate_rays(data, i, j);
             t_vec3 closest_point = find_closest_inter(data, dir_ray, i, j);
-            if (has_intersec()) {
-                handl_light();
-            }
-            else {
-                get_background_col();
-            }
+            // if (has_intersec()) {
+                // handl_light();
+            // }
+            // else {
+            //     get_background_col();
+            // }
         }
     }
 }

@@ -5,8 +5,9 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
-# include "gnl/get_next_line.h"
+# include "get_next_line/get_next_line.h"
 # include <math.h>
+# include "ft_libft/libft.h"
 // # include <libft/libft.h>
 // # include <gnl/get_next_line.h>
 # include <mlx.h>
@@ -101,5 +102,7 @@ void	draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
 void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
 int	is_valide_float(char *str);
 double	ft_atof(char *str);
+void parse_file(char *filename, t_minirt *data);
+void rays_setup(t_minirt *data);
 
 #endif

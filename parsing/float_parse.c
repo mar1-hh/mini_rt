@@ -1,4 +1,4 @@
-#include "minirt.h"
+#include "../minirt.h"
 
 int	is_valide_float(char *str)
 {

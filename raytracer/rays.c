@@ -1,8 +1,6 @@
 
 
 #include "../minirt.h"
-#include <cstddef>
-#include <cstdio>
 #include <math.h>
 
 float vec_length(t_vec3 v) {
@@ -49,7 +47,6 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     float fov_rad;
     float screen_x;
     float screen_y;
-    t_vec3 temp;
     t_vec3 ray_direction;
     aspect_ratio = 800.0 / 800.0;
     fov_rad = tan(data->camera.fov / 2 * M_PI / 180);
@@ -98,7 +95,7 @@ float intersect_sphere(t_minirt *data, t_vec3 ray_direction, int i , int j)
 
 }
 
-float intersect_plane(t_minirt *data, t_vec3 ray_direction, int i, int j)
+float intersect_plane(t_minirt *data, t_vec3 ray_direction)
 {
     float denom = dot(data->objects->normal, ray_direction);
 
@@ -144,7 +141,6 @@ void rays_setup(t_minirt *data)
     int j;
 
     i = 0;
-    j = 0;
     while (i < 800)
     {
         j = 0;
@@ -158,6 +154,8 @@ void rays_setup(t_minirt *data)
             // else {
             //     get_background_col();
             // }
+            j++;
         }
+        i++;
     }
 }

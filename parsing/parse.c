@@ -1,5 +1,4 @@
 #include "../minirt.h"
-#include <cstdio>
 #include <sys/fcntl.h>
 #include <unistd.h>
 
@@ -120,7 +119,10 @@ void parse_sphere(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->origin.x = atof(line);
+	float l = ft_atof(line);
+
+	printf("%s\n", line);
+	object->origin.x = l;
 	if (*line == ',')
 		line++;
 	object->origin.y = atof(line);

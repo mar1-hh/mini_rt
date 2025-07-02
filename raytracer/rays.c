@@ -85,7 +85,7 @@ float intersect_sphere(t_minirt *data, t_vec3 ray_direction, int i , int j)
 
     if (t1 > 0.001f)
     {
-        my_mlx_p_pix(234723402, j, i, data);
+        // my_mlx_p_pix(2347234 02, j, i, data);
         return t1;
     }
     if (t2 > 0.001f)
@@ -120,6 +120,8 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
     {
         if (current->type == SPHERE) {
             distance = intersect_sphere(data, ray_direction, x, y);
+            if (distance > 0)
+                my_mlx_p_pix(2934792347, y, x, data);
         }
         else if (current->type == PLANE) {
             distance = intersect_plane(data, ray_direction);

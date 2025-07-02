@@ -1,5 +1,21 @@
 #include "minirt.h"
 
+int    ft_strcmp(char *str1, char *str2)
+{
+    int i;
+
+    i = 0;
+    while (str1[i] || str2[i])
+    {
+        if (str1[i] > str2[i])
+            return (1);
+        else if (str1[i] < str2[i])
+            return (-1);
+        i++;
+    }
+    return (0);
+}
+
 void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data)
 {
     char    *ptr;
@@ -29,8 +45,8 @@ int main(int ac, char **av)
     t_minirt    data;
 
     init_data(&data);
-    // my_mlx_p_pix(0x00FF0000, 450, 450, &data);
-    draw_circle(&data, 450, 450, 100, 0x00FF0000);
+    parse_file(av[1], &data);
+    rays_setup(&data);
     mlx_put_image_to_window(data.mlx, data.mlx_window, data.img, 0, 0);
     mlx_loop(data.mlx);
     return (0);

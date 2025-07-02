@@ -1,8 +1,6 @@
 
 
 #include "../minirt.h"
-#include <cstddef>
-#include <cstdio>
 #include <math.h>
 
 float vec_length(t_vec3 v) {
@@ -49,7 +47,6 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     float fov_rad;
     float screen_x;
     float screen_y;
-    t_vec3 temp;
     t_vec3 ray_direction;
     aspect_ratio = 800.0 / 800.0;
     fov_rad = tan(data->camera.fov / 2 * M_PI / 180);
@@ -68,7 +65,7 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     return ray_direction;
 }
 
-float intersect_sphere(t_minirt *data, t_vec3 ray_direction)
+float intersect_sphere(t_minirt *data, t_vec3 ray_direction, int i , int j)
 {
 
     t_vec3 L = sub_vec(data->camera.origin, data->objects->origin);
@@ -87,7 +84,10 @@ float intersect_sphere(t_minirt *data, t_vec3 ray_direction)
     float t2 = (-b + sqrt_discriminant) / (2*a);
 
     if (t1 > 0.001f)
+    {
+        // my_mlx_p_pix(2347234 02, j, i, data);
         return t1;
+    }
     if (t2 > 0.001f)
         return t2;
 
@@ -119,7 +119,9 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
     while (current != NULL)
     {
         if (current->type == SPHERE) {
-            distance = intersect_sphere(data, ray_direction);
+            distance = intersect_sphere(data, ray_direction, x, y);
+            if (distance > 0)
+                my_mlx_p_pix(2934792347, y, x, data);
         }
         else if (current->type == PLANE) {
             distance = intersect_plane(data, ray_direction);
@@ -141,7 +143,6 @@ void rays_setup(t_minirt *data)
     int j;
 
     i = 0;
-    j = 0;
     while (i < 800)
     {
         j = 0;
@@ -155,6 +156,8 @@ void rays_setup(t_minirt *data)
             // else {
             //     get_background_col();
             // }
+            j++;
         }
+        i++;
     }
 }

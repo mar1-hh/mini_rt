@@ -1,5 +1,4 @@
 #include "../minirt.h"
-#include <cstdio>
 #include <sys/fcntl.h>
 #include <unistd.h>
 
@@ -114,13 +113,16 @@ void parse_plane(char *line, t_object *object)
 	object->B = atoi(line);
 }
 
-void parse_sphere(char *line, t_object *object)
+void parse_sphere(char *line, t_object **object)
 {
 	if (line[0] == 's' && line[1] == 'p')
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->origin.x = atof(line);
+	float l = ft_atof(line);
+
+	printf("%s\n", line);
+	object->origin.x = l;
 	if (*line == ',')
 		line++;
 	object->origin.y = atof(line);
@@ -206,7 +208,7 @@ void parse_file(char *filename, t_minirt *data)
 			parse_plane(line, data->objects);
 		}
 		if (line[0] == 's' && line[1] == 'p') {
-			parse_sphere(line, data->objects);
+			parse_sphere(line, &data->objects);
 		}
 		if (line[0] == 'c' && line[1] == 'y') {
 			parse_cylinder(line, data->objects);

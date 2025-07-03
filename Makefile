@@ -2,7 +2,7 @@ NAME = miniRT
 
 CC = cc
 
-CFLAGS = -fsanitize=address
+CFLAGS = 
 
 RM = rm -f
 

@@ -30,6 +30,7 @@ void    init_data(t_minirt *data)
     data->img = mlx_new_image(data->mlx, 900, 900);
     data->mlx_window = mlx_new_window(data->mlx, 900, 900, "minirt");
     data->addr = mlx_get_data_addr(data->img, &data->bits_per_pexel, &data->line_length, &data->endian);
+    data->objects = NULL;
 }
 int is_dotrt(char *str)
 {
@@ -45,7 +46,7 @@ int main(int ac, char **av)
     t_minirt    data;
 
     init_data(&data);
-    parse_file(av[1], &data);
+    parse_file(av[1], &data);	
     rays_setup(&data);
     mlx_put_image_to_window(data.mlx, data.mlx_window, data.img, 0, 0);
     mlx_loop(data.mlx);

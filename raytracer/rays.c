@@ -2,13 +2,14 @@
 
 #include "../minirt.h"
 #include <math.h>
+#include <stdio.h>
 
 float vec_length(t_vec3 v) {
     return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 t_vec3 normalize(t_vec3 v) {
     float len = vec_length(v);
-    if (len == 0.0f)
+    if (len < 1e-6f)
         return v;
     return (t_vec3){v.x / len, v.y / len, v.z / len};
 }
@@ -30,7 +31,7 @@ t_vec3 cross(t_vec3 a, t_vec3 b) {
 }
 float dot(t_vec3 a, t_vec3 b)
 {
-    return ((float){a.x * b.x + a.y * b.y +a.z * b.z});
+    return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
 float distance(t_vec3 a, t_vec3 b) {
@@ -48,15 +49,15 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     float screen_x;
     float screen_y;
     t_vec3 ray_direction;
-    aspect_ratio = 800.0 / 800.0;
+    aspect_ratio = 900.0 / 900.0;
     fov_rad = tan(data->camera.fov / 2 * M_PI / 180);
 
-    screen_x = (2 * (x + 0.5) / 800 - 1) * aspect_ratio * fov_rad;
-    screen_y = (1 - 2 * (y + 0.5) / 800) * fov_rad;
+    screen_x = (2 * (x + 0.5) / 900 - 1) * aspect_ratio * fov_rad;
+    screen_y = (1 - 2 * (y + 0.5) / 900) * fov_rad;
 
     t_vec3 forward = normalize(data->camera.normal);
     t_vec3 world_up = {0, 1, 0};
-    t_vec3 right = normalize(cross(world_up, forward));
+    t_vec3 right = normalize(cross(forward, world_up));
     t_vec3 up = cross(forward, right);
     ray_direction = normalize(
         add_vec(forward, 
@@ -65,76 +66,72 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     return ray_direction;
 }
 
-float intersect_sphere(t_minirt *data, t_vec3 ray_direction, int i , int j)
+
+float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current)
+{
+    float denom = dot(current->normal, ray_direction);
+
+    if (fabs(denom) < 1e-6)
+        return -1;
+
+    t_vec3 L = sub_vec(current->origin, data->camera.origin);
+    float t = dot(current->normal, L) / denom;
+    if (t < 0)
+        return -1;
+    return t;
+}
+float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current)
 {
 
-    t_vec3 L = sub_vec(data->camera.origin, data->objects->origin);
-    float radius = data->objects->diameter/2.0f;
+    t_vec3 L = sub_vec(data->camera.origin, current->origin);
+    float radius = current->diameter/2.0f;
     float a = 1.0f;
-    float b = 2.0f * dot(L, ray_direction);
+    float b = 2.0f * dot(ray_direction,L);
     float c = dot(L, L) - radius * radius;
-
     float discriminant = b*b - 4*a*c;
-
     if (discriminant < 0)
         return -1.0f;
 
     float sqrt_discriminant = sqrtf(discriminant);
     float t1 = (-b - sqrt_discriminant) / (2*a);
     float t2 = (-b + sqrt_discriminant) / (2*a);
-
     if (t1 > 0.001f)
-    {
-        // my_mlx_p_pix(2347234 02, j, i, data);
         return t1;
-    }
     if (t2 > 0.001f)
         return t2;
-
     return -1.0f;
 
-}
-
-float intersect_plane(t_minirt *data, t_vec3 ray_direction)
-{
-    float denom = dot(data->objects->normal, ray_direction);
-
-    if (fabs(denom) < 1e-6)
-        return -1;
-
-    t_vec3 L = sub_vec(data->objects->origin, data->camera.origin);
-    float t = dot(data->objects->origin, L) / denom;
-    if (t < 0)
-        return -1;
-    return t;
 }
 t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
 {
     t_object *current = data->objects;
     t_vec3 closest_point = {0, 0, 0};
-    t_vec3 new_point;
-    float distance = -1.0f;
     float closest_distance = MAX_F;
-
+    int hit_something = 0;
+    
     while (current != NULL)
     {
+        float distance = -1.0f;
+        
         if (current->type == SPHERE) {
-            distance = intersect_sphere(data, ray_direction, x, y);
-            if (distance > 0)
-                my_mlx_p_pix(2934792347, y, x, data);
+            distance = intersect_sphere(data, ray_direction, current);
         }
         else if (current->type == PLANE) {
-            distance = intersect_plane(data, ray_direction);
-        }
-        else if (current->type == CYLINDER) {
-            // new_point = intersect_cylinder();
+            distance = intersect_plane(data, ray_direction, current);
         }
         if (distance > 0.001f && distance < closest_distance) {
-            closest_point = new_point;
             closest_distance = distance;
+            closest_point = add_vec(data->camera.origin, mul_vec(ray_direction, distance));
+            hit_something = 1;
         }
         current = current->next;
     }
+    if (hit_something) {
+        my_mlx_p_pix(0xFF0000, x, y, data);
+    } else {
+        my_mlx_p_pix(0x0000FF, x, y, data);
+    }
+
     return closest_point;
 }
 void rays_setup(t_minirt *data)
@@ -143,10 +140,10 @@ void rays_setup(t_minirt *data)
     int j;
 
     i = 0;
-    while (i < 800)
+    while (i < 900)
     {
         j = 0;
-        while (j < 800)
+        while (j < 900)
         {
             t_vec3 dir_ray = generate_rays(data, i, j);
             t_vec3 closest_point = find_closest_inter(data, dir_ray, i, j);

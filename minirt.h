@@ -8,13 +8,14 @@
 # include "get_next_line/get_next_line.h"
 # include <math.h>
 # include "ft_libft/libft.h"
+# include <stdbool.h>
 // # include <libft/libft.h>
 // # include <gnl/get_next_line.h>
 # include <mlx.h>
 #define MAX_F (1.0f / 0.0f)
 
-# define HEIGHT 800
-# define WIDTH 800
+# define HEIGHT 1920
+# define WIDTH 1080
 
 typedef enum    e_types
 {
@@ -42,6 +43,7 @@ typedef struct s_object
 	int G;
 	int B;
 	t_vec3	normal;
+	float height;
 	struct s_object *next;
 }   t_object;
 
@@ -83,6 +85,14 @@ typedef struct s_light
 	int B;
 	}   t_light;
 
+typedef struct s_point
+{
+	t_vec3 origin;
+	float distance;
+	bool hit_something;
+	t_object *obj;
+	// int color;
+}	t_point;
 typedef struct s_minirt
 {
 	t_object	*objects;

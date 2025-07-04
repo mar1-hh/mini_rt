@@ -5,53 +5,9 @@
 
 int ft_isspace(char str)
 {
-	if (str == 32 || str == '\n' || str == '\t' || str == '\f' || str == '\f' || str == '\r')
+	if (str == 32 || str == '\n' || str == '\t' ||  str == '\f' || str == '\r')
 		return 1;
 	return 0;
-}
-
-void parse_ambient(char *line, t_ambient *ambient)
-{
-	
-	if (*line == 'A')
-		line++;
-	ambient->ratio =  atof(line);
-	while (ft_isspace(*line))
-		line++;
-	ambient->R = atoi(line);
-	if (*line == ',')
-		line++;
-	ambient->G = atoi(line);
-	if (*line == ',')
-		line++;
-	ambient->B = atoi(line);
-}
-
-void parse_light(char *line, t_light *light)
-{
-	if (*line == 'L')
-		line++;
-	while (ft_isspace(*line))
-		line++;
-	light->origin.x = atof(line);
-	if (*line == ',')
-		line++;
-	light->origin.y = atof(line);
-	if (*line == ',')
-		line++;
-	light->origin.z = atof(line);
-	while (ft_isspace(*line))
-		line++;
-	light->ratio = atof(line);
-	while (ft_isspace(*line))
-		line++;
-	light->R = atoi(line);
-	if (*line == ',')
-		line++;
-	light->G = atoi(line);
-	if (*line == ',')
-		line++;
-	light->B = atoi(line);
 }
 
 void skip_exept(char **line, char to_skip)
@@ -68,25 +24,62 @@ void skip_space(char **line)
 	while (ft_isspace(**line))
 		(*line)++;
 }
+void parse_ambient(char *line, t_ambient *ambient)
+{
+	
+	if (*line == 'A')
+		line++;
+	while (ft_isspace(*line))
+		line++;
+	ambient->ratio =  ft_atof(line);
+	skip_space(&line);
+	ambient->R = atoi(line);
+	skip_exept(&line, ',');
+	ambient->G = atoi(line);
+	skip_exept(&line, ',');
+	ambient->B = atoi(line);
+}
+
+void parse_light(char *line, t_light *light)
+{
+	if (*line == 'L')
+		line++;
+	while (ft_isspace(*line))
+		line++;
+	light->origin.x = ft_atof(line);
+	skip_exept(&line, ',');
+	light->origin.y = ft_atof(line);
+	skip_exept(&line, ',');
+	light->origin.z = ft_atof(line);
+	skip_space(&line);
+	light->ratio = ft_atof(line);
+	skip_space(&line);
+	light->R = atoi(line);
+	skip_exept(&line, ',');
+	light->G = atoi(line);
+	skip_exept(&line, ',');
+	light->B = atoi(line);
+}
+
 void parse_camera(char *line, t_camera *camera)
 {
 	if (*line == 'C')
 		line++;
 	while (ft_isspace(*line))
 		line++;
-	camera->origin.x = atof(line);
+	camera->origin.x = ft_atof(line);
 	skip_exept(&line, ',');
-	camera->origin.y = atof(line);
+	camera->origin.y = ft_atof(line);
 	skip_exept(&line, ',');
-	camera->origin.z = atof(line);
+	camera->origin.z = ft_atof(line);
 	skip_space(&line);
-	camera->normal.x = atof(line);
+	camera->normal.x = ft_atof(line);
 	skip_exept(&line, ',');
-	camera->normal.y = atof(line);
+	camera->normal.y = ft_atof(line);
 	skip_exept(&line, ',');
-	camera->normal.z = atof(line);
+	camera->normal.z = ft_atof(line);
 	skip_space(&line);
-	camera->fov = atof(line);
+	camera->fov = ft_atof(line);
 }
 
 void parse_plane(char *line, t_object *object)
@@ -96,17 +89,17 @@ void parse_plane(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->origin.x = atof(line);
+	object->origin.x = ft_atof(line);
 	skip_exept(&line, ',');
-	object->origin.y = atof(line);
+	object->origin.y = ft_atof(line);
 	skip_exept(&line, ',');
-	object->origin.z = atof(line);
+	object->origin.z = ft_atof(line);
 	skip_space(&line);
-	object->normal.x = atof(line);
+	object->normal.x = ft_atof(line);
 	skip_exept(&line, ',');
-	object->normal.y = atof(line);
+	object->normal.y = ft_atof(line);
 	skip_exept(&line, ',');
-	object->normal.z = atof(line);
+	object->normal.z = ft_atof(line);
 	skip_space(&line);
 	object->R = atoi(line);
 	skip_exept(&line, ',');
@@ -151,25 +144,27 @@ void parse_cylinder(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->origin.x = atof(line);
+	object->origin.x = ft_atof(line);
 	skip_exept(&line, ',');
-	object->origin.y = atof(line);
+	object->origin.y = ft_atof(line);
 	skip_exept(&line, ',');
-	object->origin.z = atof(line);
+	object->origin.z = ft_atof(line);
 	skip_space(&line);
-	object->diameter = atof(line);
+	object->normal.x = ft_atof(line);
+	skip_exept(&line, ',');
+	object->normal.y = ft_atof(line);
+	skip_exept(&line, ',');
+	object->normal.z = ft_atof(line);
 	skip_space(&line);
-	object->normal.x = atof(line);
-	skip_exept(&line, ',');
-	object->normal.y = atof(line);
-	skip_exept(&line, ',');
-	object->normal.z = atof(line);
+	object->diameter = ft_atof(line);
 	skip_space(&line);
-	object->R = atoi(line);
+	object->height = ft_atof(line);
+	skip_space(&line);
+	object->R = ft_atoi(line);
 	skip_exept(&line, ',');
-	object->G = atoi(line);
+	object->G = ft_atoi(line);
 	skip_exept(&line, ',');
-	object->B = atoi(line);
+	object->B = ft_atoi(line);
 }
 
 void parse_file(char *filename, t_minirt *data)
@@ -179,7 +174,7 @@ void parse_file(char *filename, t_minirt *data)
 	t_object *current;
 	t_object *new;
 
-	fd = open(filename, O_RDWR);
+	fd = open(filename, O_RDONLY);
 	if (fd == -1) {
 		write(2, "failed\n", 7);
 		return;
@@ -210,12 +205,12 @@ void parse_file(char *filename, t_minirt *data)
 					current = current->next;;
 				current->next = new;
 			}
+			if (line[0] == 'p' && line[1] == 'l')
+				parse_plane(line, new);
+			if (line[0] == 's' && line[1] == 'p')
+				parse_sphere(line, new);
+			if (line[0] == 'c' && line[1] == 'y')
+				parse_cylinder(line, new);
 		}
-		if (line[0] == 'p' && line[1] == 'l')
-			parse_plane(line, new);
-		if (line[0] == 's' && line[1] == 'p')
-			parse_sphere(line, new);
-		if (line[0] == 'c' && line[1] == 'y')
-			parse_cylinder(line, new);
 	}
 }

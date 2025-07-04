@@ -49,11 +49,11 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     float screen_x;
     float screen_y;
     t_vec3 ray_direction;
-    aspect_ratio = 900.0 / 900.0;
+    aspect_ratio = (float)HEIGHT / WIDTH;
     fov_rad = tan(data->camera.fov / 2 * M_PI / 180);
 
-    screen_x = (2 * (x + 0.5) / 900 - 1) * aspect_ratio * fov_rad;
-    screen_y = (1 - 2 * (y + 0.5) / 900) * fov_rad;
+    screen_x = (2 * (x + 0.5) / HEIGHT - 1) * aspect_ratio * fov_rad;
+    screen_y = (1 - 2 * (y + 0.5) / WIDTH) * fov_rad;
 
     t_vec3 forward = normalize(data->camera.normal);
     t_vec3 world_up = {0, 1, 0};
@@ -99,7 +99,7 @@ float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current)
     t_vec3 L = sub_vec(current->origin, data->camera.origin);
     float t = dot(current->normal, L) / denom;
     if (t < 0)
-        return -1;
+        return -1.0f;
     return t;
 }
 float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current)
@@ -114,62 +114,89 @@ float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current
     float sqrt_discriminant = sqrtf(discriminant);
     float t1 = (-b - sqrt_discriminant) / (2 * a);
     float t2 = (-b + sqrt_discriminant) / (2 * a);
+
+    // khasni ncheki cylinder height 
     if (t1 > 0.001f)
         return t1;
     if (t2 > 0.001f)
         return t2;
     return -1.0f;
 }
-t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
+
+t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
 {
     t_object *current = data->objects;
-    t_vec3 closest_point = {0, 0, 0};
+    t_object *closest_obj = NULL;
     float closest_distance = MAX_F;
-    int hit_something = 0;
-    
+    t_point point;
+
+    point.distance = -1.0f;
+    point.hit_something = 0;
+    point.origin = (t_vec3){0, 0, 0};
+    point.obj = NULL;
     while (current != NULL)
     {
         float distance = -1.0f;
-        
         if (current->type == SPHERE)
             distance = intersect_sphere(data, ray_direction, current);
         else if (current->type == PLANE)
             distance = intersect_plane(data, ray_direction, current);
         else if (current->type == CYLINDER)
-            distance = intersect_cylinder(data, ray_direction, current); 
+            distance = intersect_cylinder(data, ray_direction, current);
         if (distance > 0.001f && distance < closest_distance) {
+            closest_obj = current;
             closest_distance = distance;
-            closest_point = add_vec(data->camera.origin, mul_vec(ray_direction, distance));
-            hit_something = 1;
         }
         current = current->next;
     }
-    if (hit_something) {
-        my_mlx_p_pix(0xFF0000, x, y, data);
-    } else {
-        my_mlx_p_pix(0x0000FF, x, y, data);
+    if (closest_obj != NULL)
+    {
+        point.distance = closest_distance;
+        point.hit_something = 1;
+        point.origin = add_vec(data->camera.origin, mul_vec(ray_direction, closest_distance));
+        point.obj = closest_obj;
     }
-    return closest_point;
+    return point;
 }
+
 void rays_setup(t_minirt *data)
 {
-    int i;
-    int j;
+    int i, j;
+    t_point point;
+    t_vec3 normal;
+    t_vec3 light_dir;
+    float intensity;
+    int color;
 
     i = 0;
-    while (i < 900)
+    while (i < HEIGHT) 
     {
         j = 0;
-        while (j < 900)
+        while (j < WIDTH) 
         {
-            t_vec3 dir_ray = generate_rays(data, i, j);
-            t_vec3 closest_point = find_closest_inter(data, dir_ray, i, j);
-            // if (has_intersec()) {
-            //     handl_light();
-            // }
-            // else {
-            //     get_background_col();
-            // }
+            t_vec3 ray_direction = generate_rays(data, i, j);
+            point = find_closest_inter(data, ray_direction);
+            if (point.hit_something)
+            {
+                if (point.obj->type == SPHERE)
+                    normal = normalize(sub_vec(point.origin, point.obj->origin));
+                else if (point.obj->type == PLANE)
+                    normal = point.obj->normal;
+                else if (point.obj->type == CYLINDER) {
+                t_vec3 axis_point = {point.obj->origin.x, point.origin.y, point.obj->origin.z};
+                normal = normalize(sub_vec(point.origin, axis_point));
+            }
+                light_dir = normalize(sub_vec(data->light.origin, point.origin));
+                intensity = fmax(0.0f, dot(normal, light_dir));
+                //had l rgb fyal 3ami gpt fix edited later
+                int r = (int)(point.obj->R * intensity);
+                int g = (int)(point.obj->G * intensity);
+                int b = (int)(point.obj->B * intensity);
+                color = (r << 16) | (g << 8) | b;
+                my_mlx_p_pix(color, i, j, data);
+            }
+            else
+                my_mlx_p_pix(0x000000, i, j, data);
             j++;
         }
         i++;

@@ -107,9 +107,10 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
 {
     t_object *current = data->objects;
     t_vec3 closest_point = {0, 0, 0};
+    t_object    *obj;
     float closest_distance = MAX_F;
     int hit_something = 0;
-    int intensity;
+    float intensity;
     t_vec3  normal;
     t_vec3  ana_m9wd_xwiya_hh;
     t_vec3  light_dir;
@@ -125,6 +126,7 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
             distance = intersect_plane(data, ray_direction, current);
         }
         if (distance > 0.001f && distance < closest_distance) {
+            obj = current;
             closest_distance = distance;
             closest_point = add_vec(data->camera.origin, mul_vec(ray_direction, distance));
             hit_something = 1;
@@ -134,13 +136,14 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
     if (hit_something)
     {
         ana_m9wd_xwiya_hh = add_vec(data->camera.origin, mul_vec(ray_direction, closest_distance));
-        normal = normalize(sub_vec(ana_m9wd_xwiya_hh, data->light.origin));
+        normal = normalize(sub_vec(ana_m9wd_xwiya_hh, obj->origin));
         light_dir = normalize(sub_vec(data->light.origin, ana_m9wd_xwiya_hh));
         intensity = fmax(0.0f, dot(normal, light_dir));
+        printf("%f\n", intensity);
         my_mlx_p_pix(0xFF0000 * intensity, x, y, data);
     }
     else {
-        my_mlx_p_pix(0x0000FF, x, y, data);
+        my_mlx_p_pix(0x000000, x, y, data);
     }
 
     return closest_point;

@@ -54,6 +54,20 @@ void parse_light(char *line, t_light *light)
 	light->B = atoi(line);
 }
 
+void skip_exept(char **line, char to_skip)
+{
+	while ((**line) && (**line) != to_skip)
+        (*line)++;
+	if ((**line) == to_skip)
+		(*line)++;
+}
+void skip_space(char **line)
+{
+	while (**line && **line != ' ')
+        (*line)++;
+	while (ft_isspace(**line))
+		(*line)++;
+}
 void parse_camera(char *line, t_camera *camera)
 {
 	if (*line == 'C')
@@ -61,86 +75,43 @@ void parse_camera(char *line, t_camera *camera)
 	while (ft_isspace(*line))
 		line++;
 	camera->origin.x = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	camera->origin.y = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	camera->origin.z = atof(line);
-	while (*line && *line != ' ')
-        line++;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	camera->normal.x = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	camera->normal.y = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	camera->normal.z = atof(line);
-	while (*line && *line != ' ')
-        line++;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	camera->fov = atof(line);
 }
 
 void parse_plane(char *line, t_object *object)
 {
 	object->type = PLANE;
-	printf("Parsing plane: %s\n", line);
 	if (line[0] == 'p' && line[1] == 'l')
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
 	object->origin.x = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->origin.y = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->origin.z = atof(line);
-	while (*line && *line != ' ')
-        line++;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	object->normal.x = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->normal.y = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->normal.z = atof(line);
-	while (*line && *line != ' ')
-        line++;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	object->R = atoi(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->G = atoi(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->B = atoi(line);
 }
 
@@ -151,19 +122,10 @@ void parse_sphere(char *line, t_object *object)
         line += 2;
     while (ft_isspace(*line))
         line++;
-    
-    printf("%s\n", line);
-    
     object->origin.x = ft_atof(line);
-    while (*line && *line != ',')  
-        line++;
-    if (*line == ',')
-        line++;
+    skip_exept(&line, ',');
     object->origin.y = ft_atof(line);
-    while (*line && *line != ',') 
-        line++;
-    if (*line == ',')
-        line++;
+    skip_exept(&line, ',');
     object->origin.z = ft_atof(line);
     while (*line && !ft_isspace(*line)) 
         line++;
@@ -175,70 +137,38 @@ void parse_sphere(char *line, t_object *object)
     while (ft_isspace(*line))
         line++;
     object->R = ft_atoi(line);
-    while (*line && *line != ',') 
-        line++;
-    if (*line == ',')
-        line++;
+    skip_exept(&line, ',');
     object->G = ft_atoi(line);
-    while (*line && *line != ',') 
-        line++;
-    if (*line == ',')
-        line++;
+    skip_exept(&line, ',');
     object->B = ft_atoi(line);
     object->next = NULL;
 }
 
 void parse_cylinder(char *line, t_object *object)
 {
+	object->type = CYLINDER;
 	if (line[0] == 'c' && line[1] == 'y')
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
 	object->origin.x = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->origin.y = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->origin.z = atof(line);
-	while (*line && *line != ' ')
-        line++;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	object->diameter = atof(line);
-	while (*line && *line != ' ')
-        line++;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	object->normal.x = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->normal.y = atof(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->normal.z = atof(line);
-	while (*line && *line != ' ')
-        line++;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	object->R = atoi(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->G = atoi(line);
-	while (*line && *line != ',')
-        line++;
-	if (*line == ',')
-		line++;
+	skip_exept(&line, ',');
 	object->B = atoi(line);
 }
 
@@ -260,28 +190,24 @@ void parse_file(char *filename, t_minirt *data)
 			break;
 		while (ft_isspace(*line))
 			line++;
-		if (*line == 'A') {
+		if (*line == 'A')
 			parse_ambient(line, &data->ambient);
-		}
-		if (*line == 'L') {
+		if (*line == 'L')
 			parse_light(line, &data->light);
-		}
-		if (*line == 'C') {
+		if (*line == 'C')
 			parse_camera(line, &data->camera);
-		}
 		if ((line[0] == 'p' && line[1] == 'l')
 			|| (line[0] == 'c' && line[1] == 'y')
 			|| (line[0] == 's' && line[1] == 'p')) {
 			new = malloc(sizeof(t_object));
 			new->next = NULL;
-			if (!data->objects) {
+			if (!data->objects)
 				data->objects = new;
-			}
-			else {
+			else
+			{
 				current = data->objects;
-				while (current->next) {
+				while (current->next)
 					current = current->next;;
-				}
 				current->next = new;
 			}
 		}

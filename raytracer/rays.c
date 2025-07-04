@@ -67,19 +67,6 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
 }
 
 
-float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current)
-{
-    float denom = dot(current->normal, ray_direction);
-
-    if (fabs(denom) < 1e-6)
-        return -1;
-
-    t_vec3 L = sub_vec(current->origin, data->camera.origin);
-    float t = dot(current->normal, L) / denom;
-    if (t < 0)
-        return -1;
-    return t;
-}
 float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current)
 {
 
@@ -102,6 +89,37 @@ float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current)
     return -1.0f;
 
 }
+float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current)
+{
+    float denom = dot(current->normal, ray_direction);
+
+    if (fabs(denom) < 1e-6)
+        return -1;
+
+    t_vec3 L = sub_vec(current->origin, data->camera.origin);
+    float t = dot(current->normal, L) / denom;
+    if (t < 0)
+        return -1;
+    return t;
+}
+float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current)
+{
+    t_vec3 L = sub_vec(data->camera.origin, current->origin);
+    float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
+    float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
+    float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    float sqrt_discriminant = sqrtf(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2 * a);
+    float t2 = (-b + sqrt_discriminant) / (2 * a);
+    if (t1 > 0.001f)
+        return t1;
+    if (t2 > 0.001f)
+        return t2;
+    return -1.0f;
+}
 t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
 {
     t_object *current = data->objects;
@@ -113,12 +131,12 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
     {
         float distance = -1.0f;
         
-        if (current->type == SPHERE) {
+        if (current->type == SPHERE)
             distance = intersect_sphere(data, ray_direction, current);
-        }
-        else if (current->type == PLANE) {
+        else if (current->type == PLANE)
             distance = intersect_plane(data, ray_direction, current);
-        }
+        else if (current->type == CYLINDER)
+            distance = intersect_cylinder(data, ray_direction, current); 
         if (distance > 0.001f && distance < closest_distance) {
             closest_distance = distance;
             closest_point = add_vec(data->camera.origin, mul_vec(ray_direction, distance));
@@ -131,7 +149,6 @@ t_vec3 find_closest_inter(t_minirt *data, t_vec3 ray_direction, int x, int y)
     } else {
         my_mlx_p_pix(0x0000FF, x, y, data);
     }
-
     return closest_point;
 }
 void rays_setup(t_minirt *data)
@@ -148,7 +165,7 @@ void rays_setup(t_minirt *data)
             t_vec3 dir_ray = generate_rays(data, i, j);
             t_vec3 closest_point = find_closest_inter(data, dir_ray, i, j);
             // if (has_intersec()) {
-                // handl_light();
+            //     handl_light();
             // }
             // else {
             //     get_background_col();

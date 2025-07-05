@@ -66,7 +66,6 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     return ray_direction;
 }
 
-
 float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current)
 {
 
@@ -159,12 +158,63 @@ t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
     return point;
 }
 
+float intersect_sphere_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *sphere)
+{
+    t_vec3 oc = sub_vec(ray_origin, sphere->origin);
+    float radius = sphere->diameter / 2.0f;
+
+    float a = dot(ray_direction, ray_direction);
+    float b = 2.0f * dot(oc, ray_direction);
+    float c = dot(oc, oc) - radius * radius;
+
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+
+    float sqrt_d = sqrtf(discriminant);
+    float t1 = (-b - sqrt_d) / (2.0f * a);
+    float t2 = (-b + sqrt_d) / (2.0f * a);
+
+    if (t1 > 0.001f)
+        return t1;
+    if (t2 > 0.001f)
+        return t2;
+    return -1.0f;
+}
+
+int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n)
+{
+    float   max_dstance;
+    float   dstance;
+    t_object    *obj;
+
+    max_dstance = vec_length(sub_vec(data->light.origin, point.origin));
+    obj = data->objects;
+    while (obj)
+    {
+        if (obj != point.obj)
+        {
+            if (obj->type == SPHERE)
+            {
+                dstance = intersect_sphere_shadow(point.origin, light_dir_n, obj);
+                if (dstance > 0.0f && dstance < max_dstance)
+                {
+                    return (1);
+                }
+            }
+        }
+        obj = obj->next;
+    }
+    return (0);
+}
+
 void rays_setup(t_minirt *data)
 {
     int i, j;
     t_point point;
     t_vec3 normal;
-    t_vec3 light_dir;
+    t_vec3 light_dir_n;
+    t_vec3  light;
     float intensity;
     int color;
 
@@ -182,13 +232,18 @@ void rays_setup(t_minirt *data)
                     normal = normalize(sub_vec(point.origin, point.obj->origin));
                 else if (point.obj->type == PLANE)
                     normal = point.obj->normal;
-                else if (point.obj->type == CYLINDER) {
-                t_vec3 axis_point = {point.obj->origin.x, point.origin.y, point.obj->origin.z};
-                normal = normalize(sub_vec(point.origin, axis_point));
-            }
-                light_dir = normalize(sub_vec(data->light.origin, point.origin));
-                intensity = fmax(0.0f, dot(normal, light_dir));
-                //had l rgb fyal 3ami gpt fix edited later
+                else if (point.obj->type == CYLINDER)
+                {
+                    t_vec3 axis_point = {point.obj->origin.x, point.origin.y, point.obj->origin.z};
+                    normal = normalize(sub_vec(point.origin, axis_point));
+                }
+                light_dir_n = normalize(sub_vec(data->light.origin, point.origin));
+                if (!is_shadow(data, point, light_dir_n))
+                    intensity = fmax(0.0f, dot(normal, light_dir_n));
+                else
+                    intensity = 0.01f;
+                intensity += data->ambient.ratio;
+                intensity = fmin(1.0f, intensity);
                 int r = (int)(point.obj->R * intensity);
                 int g = (int)(point.obj->G * intensity);
                 int b = (int)(point.obj->B * intensity);

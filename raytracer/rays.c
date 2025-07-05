@@ -158,6 +158,41 @@ t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
     return point;
 }
 
+float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
+{
+    t_vec3 L = sub_vec(ray_origin, current->origin);
+    float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
+    float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
+    float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    float sqrt_discriminant = sqrtf(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2 * a);
+    float t2 = (-b + sqrt_discriminant) / (2 * a);
+
+    // khasni ncheki cylinder height 
+    if (t1 > 0.001f)
+        return t1;
+    if (t2 > 0.001f)
+        return t2;
+    return -1.0f;
+}
+
+float intersect_plane_shadow(t_minirt *data, t_vec3 ray_direction, t_object *current)
+{
+    float denom = dot(current->normal, ray_direction);
+
+    if (fabs(denom) < 1e-6)
+        return -1;
+
+    t_vec3 L = sub_vec(current->origin, data->camera.origin);
+    float t = dot(current->normal, L) / denom;
+    if (t < 0)
+        return -1.0f;
+    return t;
+}
+
 float intersect_sphere_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *sphere)
 {
     t_vec3 oc = sub_vec(ray_origin, sphere->origin);
@@ -195,13 +230,13 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n)
         if (obj != point.obj)
         {
             if (obj->type == SPHERE)
-            {
                 dstance = intersect_sphere_shadow(point.origin, light_dir_n, obj);
-                if (dstance > 0.0f && dstance < max_dstance)
-                {
-                    return (1);
-                }
-            }
+            else if (obj->type == CYLINDER)
+                dstance = intersect_cylinder_shadow(point.origin, light_dir_n, obj);
+            // else if (obj->type == PLANE)
+            //     dstance = intersect_plane_shadow(data, light_dir_n, obj);
+            if (dstance > 0.0f && dstance < max_dstance)
+                return (1);
         }
         obj = obj->next;
     }
@@ -241,7 +276,10 @@ void rays_setup(t_minirt *data)
                 if (!is_shadow(data, point, light_dir_n))
                     intensity = fmax(0.0f, dot(normal, light_dir_n));
                 else
-                    intensity = 0.01f;
+                {
+                    intensity = fmax(0.0f, dot(normal, light_dir_n)) * 0.75;
+                    // intensity = 0;
+                }
                 intensity += data->ambient.ratio;
                 intensity = fmin(1.0f, intensity);
                 int r = (int)(point.obj->R * intensity);

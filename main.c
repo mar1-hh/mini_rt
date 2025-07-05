@@ -27,8 +27,8 @@ void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data)
 void    init_data(t_minirt *data)
 {
     data->mlx = mlx_init();
-    data->img = mlx_new_image(data->mlx, HEIGHT, WIDTH);
-    data->mlx_window = mlx_new_window(data->mlx, HEIGHT, WIDTH, "minirt");
+    data->img = mlx_new_image(data->mlx, WIDTH, HEIGHT);
+    data->mlx_window = mlx_new_window(data->mlx, WIDTH, HEIGHT, "minirt");
     data->addr = mlx_get_data_addr(data->img, &data->bits_per_pexel, &data->line_length, &data->endian);
     data->objects = NULL;
 }

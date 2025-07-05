@@ -49,11 +49,11 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
     float screen_x;
     float screen_y;
     t_vec3 ray_direction;
-    aspect_ratio = (float)HEIGHT / WIDTH;
+    aspect_ratio = (float)WIDTH / HEIGHT;
     fov_rad = tan(data->camera.fov / 2 * M_PI / 180);
 
-    screen_x = (2 * (x + 0.5) / HEIGHT - 1) * aspect_ratio * fov_rad;
-    screen_y = (1 - 2 * (y + 0.5) / WIDTH) * fov_rad;
+    screen_x = (2 * (x + 0.5) / WIDTH - 1) * aspect_ratio * fov_rad;
+    screen_y = (2 * (y + 0.5) / HEIGHT - 1) * fov_rad; 
 
     t_vec3 forward = normalize(data->camera.normal);
     t_vec3 world_up = {0, 1, 0};
@@ -114,11 +114,18 @@ float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current
     float t1 = (-b - sqrt_discriminant) / (2 * a);
     float t2 = (-b + sqrt_discriminant) / (2 * a);
 
-    // khasni ncheki cylinder height 
     if (t1 > 0.001f)
-        return t1;
+    {
+        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
+        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+            return t1;
+    }
     if (t2 > 0.001f)
-        return t2;
+    {
+        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
+        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+            return t2;
+    }
     return -1.0f;
 }
 
@@ -188,7 +195,7 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n)
     float   dstance;
     t_object    *obj;
 
-    max_dstance = vec_length(sub_vec(data->light.origin, point.origin));
+    max_dstance = vec_length(sub_vec(data->light->origin, point.origin));
     obj = data->objects;
     while (obj)
     {
@@ -219,10 +226,10 @@ void rays_setup(t_minirt *data)
     int color;
 
     i = 0;
-    while (i < HEIGHT) 
+    while (i < WIDTH) 
     {
         j = 0;
-        while (j < WIDTH) 
+        while (j < HEIGHT) 
         {
             t_vec3 ray_direction = generate_rays(data, i, j);
             point = find_closest_inter(data, ray_direction);
@@ -237,7 +244,7 @@ void rays_setup(t_minirt *data)
                     t_vec3 axis_point = {point.obj->origin.x, point.origin.y, point.obj->origin.z};
                     normal = normalize(sub_vec(point.origin, axis_point));
                 }
-                light_dir_n = normalize(sub_vec(data->light.origin, point.origin));
+                light_dir_n = normalize(sub_vec(data->light->origin, point.origin));
                 if (!is_shadow(data, point, light_dir_n))
                     intensity = fmax(0.0f, dot(normal, light_dir_n));
                 else

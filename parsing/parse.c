@@ -173,6 +173,8 @@ void parse_file(char *filename, t_minirt *data)
 	int fd;
 	t_object *current;
 	t_object *new;
+	t_light *c_light;
+	t_light *new_light;
 
 	fd = open(filename, O_RDONLY);
 	if (fd == -1) {
@@ -188,13 +190,31 @@ void parse_file(char *filename, t_minirt *data)
 		if (*line == 'A')
 			parse_ambient(line, &data->ambient);
 		if (*line == 'L')
-			parse_light(line, &data->light);
+		{
+			new_light = malloc(sizeof(t_light));
+			if (!new_light)
+				return;
+			new_light->next = NULL;
+			if (!data->light)
+				data->light = new_light;
+			else
+			{
+				c_light = data->light;
+				while (c_light->next)
+					c_light = c_light->next;
+				c_light->next = new_light;
+			}
+			parse_light(line, new_light);
+		}
 		if (*line == 'C')
 			parse_camera(line, &data->camera);
 		if ((line[0] == 'p' && line[1] == 'l')
 			|| (line[0] == 'c' && line[1] == 'y')
-			|| (line[0] == 's' && line[1] == 'p')) {
+			|| (line[0] == 's' && line[1] == 'p'))
+		{
 			new = malloc(sizeof(t_object));
+			if (!new)
+				return;
 			new->next = NULL;
 			if (!data->objects)
 				data->objects = new;

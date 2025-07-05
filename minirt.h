@@ -14,8 +14,8 @@
 # include <mlx.h>
 #define MAX_F (1.0f / 0.0f)
 
-# define HEIGHT 1920
-# define WIDTH 1080
+# define WIDTH 1920
+# define HEIGHT 1080
 
 typedef enum    e_types
 {
@@ -47,17 +47,17 @@ typedef struct s_object
 	struct s_object *next;
 }   t_object;
 
-typedef struct	s_vector
-{
-	float	x;
-	float	y;
-	float	z;
-}	t_vector;
+// typedef struct	s_vector
+// {
+// 	float	x;
+// 	float	y;
+// 	float	z;
+// }	t_vector;
 
 typedef struct	s_ray
 {
-	t_vector	*origine;
-	t_vector	*dir;
+	t_vec3	*origine;
+	t_vec3	*dir;
 }	t_ray;
 
 
@@ -73,7 +73,7 @@ typedef struct s_camera
 {
 	t_vec3	origin;
 	t_vec3	normal;
-	t_vector	*org;
+	t_vec3	*org;
 	float		fov;
 }   t_camera;
 typedef struct s_light
@@ -83,6 +83,7 @@ typedef struct s_light
 	int R;
 	int G;
 	int B;
+	struct s_light *next;
 	}   t_light;
 
 typedef struct s_point
@@ -98,7 +99,7 @@ typedef struct s_minirt
 	t_object	*objects;
 	t_ambient	ambient;
 	t_camera	camera;
-	t_light		light;
+	t_light		*light;
 	void	*img;
 	void	*mlx;
 	void	*mlx_window;

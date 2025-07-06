@@ -260,7 +260,7 @@ float    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
     t_vec3  light_dir_n;
 
     light = data->light;
-    intensity = 0;
+    intensity = 0.2f;
     while (light)
     {
         light_dir_n = normalize(sub_vec(light->origin, point->origin));

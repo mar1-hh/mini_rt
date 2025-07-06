@@ -240,14 +240,38 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n)
                 dstance = intersect_sphere_shadow(point.origin, light_dir_n, obj);
             else if (obj->type == CYLINDER)
                 dstance = intersect_cylinder_shadow(point.origin, light_dir_n, obj);
-            // else if (obj->type == PLANE)
-            //     dstance = intersect_plane_shadow(data, light_dir_n, obj);
+            else if (obj->type == PLANE)
+            {
+                obj = obj->next;
+                continue ;
+            }
+                // dstance = intersect_plane_shadow(data, light_dir_n, obj);
             if (dstance > 0.0f && dstance < max_dstance)
                 return (1);
         }
         obj = obj->next;
     }
     return (0);
+}
+
+float    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
+{
+    t_light *light;
+    float   intensity;
+    t_vec3  light_dir_n;
+
+    light = data->light;
+    intensity = 0;
+    while (light)
+    {
+        light_dir_n = normalize(sub_vec(light->origin, point->origin));
+        if (!is_shadow(data, *point, light_dir_n))
+            intensity += fmax(0.0f, dot(normal, light_dir_n));
+        light = light->next;
+    }
+    intensity += data->ambient.ratio;
+    intensity = fmin(1.0f, intensity);
+    return (intensity);
 }
 
 void rays_setup(t_minirt *data)
@@ -259,6 +283,7 @@ void rays_setup(t_minirt *data)
     t_vec3  light;
     float intensity;
     int color;
+
 
     i = 0;
     while (i < WIDTH) 
@@ -279,16 +304,17 @@ void rays_setup(t_minirt *data)
                     t_vec3 axis_point = {point.obj->origin.x, point.origin.y, point.obj->origin.z};
                     normal = normalize(sub_vec(point.origin, axis_point));
                 }
-                light_dir_n = normalize(sub_vec(data->light->origin, point.origin));
-                if (!is_shadow(data, point, light_dir_n))
-                    intensity = fmax(0.0f, dot(normal, light_dir_n));
-                else
-                {
-                    intensity = fmax(0.0f, dot(normal, light_dir_n)) * 0.75;
-                    // intensity = 0;
-                }
-                intensity += data->ambient.ratio;
-                intensity = fmin(1.0f, intensity);
+                // light_dir_n = normalize(sub_vec(data->light->origin, point.origin));
+                // if (!is_shadow(data, point, light_dir_n))
+                //     intensity = fmax(0.0f, dot(normal, light_dir_n));
+                // else
+                // {
+                //     intensity = fmax(0.0f, dot(normal, light_dir_n)) * 0.75;
+                //     // intensity = 0;
+                // }
+                // intensity += data->ambient.ratio;
+                // intensity = fmin(1.0f, intensity);
+                intensity = handle_light_shadow(data, &point, normal);
                 int r = (int)(point.obj->R * intensity);
                 int g = (int)(point.obj->G * intensity);
                 int b = (int)(point.obj->B * intensity);

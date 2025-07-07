@@ -177,12 +177,18 @@ float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_objec
     float sqrt_discriminant = sqrtf(discriminant);
     float t1 = (-b - sqrt_discriminant) / (2 * a);
     float t2 = (-b + sqrt_discriminant) / (2 * a);
-
-    // khasni ncheki cylinder height 
     if (t1 > 0.001f)
-        return t1;
+    {
+        t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t1));
+        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+            return t1;
+    }
     if (t2 > 0.001f)
-        return t2;
+    {
+        t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t2));
+        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+            return t2;
+    }
     return -1.0f;
 }
 

@@ -9,8 +9,7 @@
 # include <math.h>
 # include "ft_libft/libft.h"
 # include <stdbool.h>
-// # include <libft/libft.h>
-// # include <gnl/get_next_line.h>
+// # include "minilibx-linux/mlx.h"
 # include <mlx.h>
 #define MAX_F (1.0f / 0.0f)
 

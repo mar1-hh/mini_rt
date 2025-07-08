@@ -27,6 +27,12 @@ typedef enum    e_types
 	CONE,
 }   t_types;
 
+typedef enum e_txture_type
+{
+	NONE,
+	CHECKER,
+	BUMP,
+}   t_texture;
 typedef struct s_vec3
 {
 	float x;
@@ -51,7 +57,8 @@ typedef struct s_object
 	int B;
 	float	diameter;
 	float	height;
-	// float angle;
+	t_texture	texture;
+	void *texture_data;
 	struct s_object *next;
 }   t_object;
 

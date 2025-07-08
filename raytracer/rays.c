@@ -65,6 +65,20 @@ t_vec3 generate_rays(t_minirt *data, int x, int y)
         mul_vec(up, screen_y))));
     return ray_direction;
 }
+float check_descriminant(float a, float b, float c)
+{
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    float sqrt_discriminant = sqrtf(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2 * a);
+    float t2 = (-b + sqrt_discriminant) / (2 * a);
+    if (t1 > 0.001f)
+        return t1;
+    if (t2 > 0.001f)
+        return t2;
+    return -1.0f;
+}
 
 float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current)
 {
@@ -74,18 +88,7 @@ float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current)
     float a = 1.0f;
     float b = 2.0f * dot(ray_direction,L);
     float c = dot(L, L) - radius * radius;
-    float discriminant = b*b - 4*a*c;
-    if (discriminant < 0)
-        return -1.0f;
-
-    float sqrt_discriminant = sqrtf(discriminant);
-    float t1 = (-b - sqrt_discriminant) / (2*a);
-    float t2 = (-b + sqrt_discriminant) / (2*a);
-    if (t1 > 0.001f)
-        return t1;
-    if (t2 > 0.001f)
-        return t2;
-    return -1.0f;
+    return check_descriminant(a, b, c);
 
 }
 float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current)
@@ -107,24 +110,13 @@ float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current
     float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
     float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
     float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
-    float discriminant = b * b - 4 * a * c;
-    if (discriminant < 0)
-        return -1.0f;
-    float sqrt_discriminant = sqrtf(discriminant);
-    float t1 = (-b - sqrt_discriminant) / (2 * a);
-    float t2 = (-b + sqrt_discriminant) / (2 * a);
+    float t = check_descriminant(a, b, c);
 
-    if (t1 > 0.001f)
+    if (t > 0.001f)
     {
-        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
+        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t));
         if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
-            return t1;
-    }
-    if (t2 > 0.001f)
-    {
-        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
-        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
-            return t2;
+            return t;
     }
     return -1.0f;
 }
@@ -136,41 +128,23 @@ float intersect_cone_shadow(t_vec3 *light, t_vec3 ray_direction, t_object *curre
     float radius = current->diameter / 2.0f;
     float height = current->height;
     float k = radius / height;
-    float k_squared = k * k;
+    float k_s = k * k;
     t_vec3 v = ray_direction;
-    t_vec3 w = co;
-    float v_dot_axis = dot(v, axis);
-    float w_dot_axis = dot(w, axis);
-    float a = dot(v, v) - (1 + k_squared) * v_dot_axis * v_dot_axis;
-    float b = 2 * (dot(v, w) - (1 + k_squared) * v_dot_axis * w_dot_axis);
-    float c = dot(w, w) - (1 + k_squared) * w_dot_axis * w_dot_axis;
-    
-    float discriminant = b * b - 4 * a * c;
-    if (discriminant < 0)
-        return -1.0f;
-    
-    float sqrt_discriminant = sqrtf(discriminant);
-    float t1 = (-b - sqrt_discriminant) / (2 * a);
-    float t2 = (-b + sqrt_discriminant) / (2 * a);
-    
-    float t = -1.0f;
-    if (t1 > 0.001f)
-    {
-        t_vec3 p = add_vec(*light, mul_vec(ray_direction, t1));
-        float h = dot(sub_vec(p, current->origin), axis);
-        if (h >= 0 && h <= height)
-            t = t1;
-    }
-    if (t2 > 0.001f && (t < 0 || t2 < t))
-    {
-        t_vec3 p = add_vec(*light, mul_vec(ray_direction, t2));
-        float h = dot(sub_vec(p, current->origin), axis);
-        if (h >= 0 && h <= height)
-            t = t2;
-    }
-    return t;
-}
 
+    float a = dot(v, v) - (1 + k_s) * dot(v, axis) * dot(v, axis);
+    float b = 2 * (dot(v, co) - (1 + k_s) * dot(v, axis) * dot(co, axis));
+    float c = dot(co, co) - (1 + k_s) * dot(co, axis) * dot(co, axis);
+    
+    float t = check_descriminant(a, b, c);
+    if (t > 0.001f)
+    {
+        t_vec3 p = add_vec(*light, mul_vec(ray_direction, t));
+        float h = dot(sub_vec(p, current->origin), axis);
+        if (h >= 0 && h <= height)
+            return t;
+    }
+    return -1.0f;
+}
 float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
 {
     t_vec3 co = sub_vec(data->camera.origin, current->origin);
@@ -178,40 +152,65 @@ float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
     float radius = current->diameter / 2.0f;
     float height = current->height;
     float k = radius / height;
-    float k_squared = k * k;
+    float k_s = k * k;
     t_vec3 v = ray_direction;
-    t_vec3 w = co;
-    float v_dot_axis = dot(v, axis);
-    float w_dot_axis = dot(w, axis);
-    float a = dot(v, v) - (1 + k_squared) * v_dot_axis * v_dot_axis;
-    float b = 2 * (dot(v, w) - (1 + k_squared) * v_dot_axis * w_dot_axis);
-    float c = dot(w, w) - (1 + k_squared) * w_dot_axis * w_dot_axis;
+
+    float a = dot(v, v) - (1 + k_s) * dot(v, axis) * dot(v, axis);
+    float b = 2 * (dot(v, co) - (1 + k_s) * dot(v, axis) * dot(co, axis));
+    float c = dot(co, co) - (1 + k_s) * dot(co, axis) * dot(co, axis);
     
-    float discriminant = b * b - 4 * a * c;
-    if (discriminant < 0)
-        return -1.0f;
-    
-    float sqrt_discriminant = sqrtf(discriminant);
-    float t1 = (-b - sqrt_discriminant) / (2 * a);
-    float t2 = (-b + sqrt_discriminant) / (2 * a);
-    
-    float t = -1.0f;
-    if (t1 > 0.001f)
+    float t = check_descriminant(a, b, c);
+    if (t > 0.001f)
     {
-        t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
+        t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t));
         float h = dot(sub_vec(p, current->origin), axis);
         if (h >= 0 && h <= height)
-            t = t1;
+            return t;
     }
-    if (t2 > 0.001f && (t < 0 || t2 < t))
-    {
-        t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
-        float h = dot(sub_vec(p, current->origin), axis);
-        if (h >= 0 && h <= height)
-            t = t2;
-    }
-    return t;
+    return -1.0f;
 }
+
+// float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
+// {
+//     t_vec3 co = sub_vec(data->camera.origin, current->origin);
+//     t_vec3 axis = normalize(current->normal);
+//     float radius = current->diameter / 2.0f;
+//     float height = current->height;
+//     float k = radius / height;
+//     float k_squared = k * k;
+//     t_vec3 v = ray_direction;
+//     t_vec3 w = co;
+//     float v_dot_axis = dot(v, axis);
+//     float w_dot_axis = dot(w, axis);
+//     float a = dot(v, v) - (1 + k_squared) * v_dot_axis * v_dot_axis;
+//     float b = 2 * (dot(v, w) - (1 + k_squared) * v_dot_axis * w_dot_axis);
+//     float c = dot(w, w) - (1 + k_squared) * w_dot_axis * w_dot_axis;
+    
+//     float discriminant = b * b - 4 * a * c;
+//     if (discriminant < 0)
+//         return -1.0f;
+    
+//     float sqrt_discriminant = sqrtf(discriminant);
+//     float t1 = (-b - sqrt_discriminant) / (2 * a);
+//     float t2 = (-b + sqrt_discriminant) / (2 * a);
+    
+//     float t = -1.0f;
+//     if (t1 > 0.001f)
+//     {
+//         t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
+//         float h = dot(sub_vec(p, current->origin), axis);
+//         if (h >= 0 && h <= height)
+//             t = t1;
+//     }
+//     if (t2 > 0.001f && (t < 0 || t2 < t))
+//     {
+//         t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
+//         float h = dot(sub_vec(p, current->origin), axis);
+//         if (h >= 0 && h <= height)
+//             t = t2;
+//     }
+//     return t;
+// }
 t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
 {
     t_object *current = data->objects;
@@ -250,24 +249,40 @@ t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
     return point;
 }
 
+// float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
+// {
+//     t_vec3 L = sub_vec(ray_origin, current->origin);
+//     float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
+//     float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
+//     float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
+//     float discriminant = b * b - 4 * a * c;
+//     if (discriminant < 0)
+//         return -1.0f;
+//     float sqrt_discriminant = sqrtf(discriminant);
+//     float t1 = (-b - sqrt_discriminant) / (2 * a);
+//     float t2 = (-b + sqrt_discriminant) / (2 * a);
+
+//     // khasni ncheki cylinder height 
+//     if (t1 > 0.001f)
+//         return t1;
+//     if (t2 > 0.001f)
+//         return t2;
+//     return -1.0f;
+// }
 float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
 {
     t_vec3 L = sub_vec(ray_origin, current->origin);
     float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
     float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
     float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
-    float discriminant = b * b - 4 * a * c;
-    if (discriminant < 0)
-        return -1.0f;
-    float sqrt_discriminant = sqrtf(discriminant);
-    float t1 = (-b - sqrt_discriminant) / (2 * a);
-    float t2 = (-b + sqrt_discriminant) / (2 * a);
+    float t = check_descriminant(a, b, c);
 
-    // khasni ncheki cylinder height 
-    if (t1 > 0.001f)
-        return t1;
-    if (t2 > 0.001f)
-        return t2;
+    if (t > 0.001f)
+    {
+        t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t));
+        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+            return t;
+    }
     return -1.0f;
 }
 
@@ -284,7 +299,6 @@ float intersect_plane_shadow(t_minirt *data, t_vec3 ray_direction, t_object *cur
         return -1.0f;
     return t;
 }
-
 float intersect_sphere_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *sphere)
 {
     t_vec3 oc = sub_vec(ray_origin, sphere->origin);
@@ -294,19 +308,7 @@ float intersect_sphere_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object 
     float b = 2.0f * dot(oc, ray_direction);
     float c = dot(oc, oc) - radius * radius;
 
-    float discriminant = b * b - 4 * a * c;
-    if (discriminant < 0)
-        return -1.0f;
-
-    float sqrt_d = sqrtf(discriminant);
-    float t1 = (-b - sqrt_d) / (2.0f * a);
-    float t2 = (-b + sqrt_d) / (2.0f * a);
-
-    if (t1 > 0.001f)
-        return t1;
-    if (t2 > 0.001f)
-        return t2;
-    return -1.0f;
+    return check_descriminant(a, b, c);
 }
 
 
@@ -332,9 +334,7 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
                 continue ;
             }
             else if (obj->type == CONE)
-            {
                 dstance = intersect_cone_shadow(&origin_light, light_dir_n, obj);
-            }
             
             if (dstance > 0.0f && dstance < max_dstance)
                 return (1);

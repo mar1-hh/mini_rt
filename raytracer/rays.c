@@ -170,47 +170,7 @@ float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
     return -1.0f;
 }
 
-// float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
-// {
-//     t_vec3 co = sub_vec(data->camera.origin, current->origin);
-//     t_vec3 axis = normalize(current->normal);
-//     float radius = current->diameter / 2.0f;
-//     float height = current->height;
-//     float k = radius / height;
-//     float k_squared = k * k;
-//     t_vec3 v = ray_direction;
-//     t_vec3 w = co;
-//     float v_dot_axis = dot(v, axis);
-//     float w_dot_axis = dot(w, axis);
-//     float a = dot(v, v) - (1 + k_squared) * v_dot_axis * v_dot_axis;
-//     float b = 2 * (dot(v, w) - (1 + k_squared) * v_dot_axis * w_dot_axis);
-//     float c = dot(w, w) - (1 + k_squared) * w_dot_axis * w_dot_axis;
-    
-//     float discriminant = b * b - 4 * a * c;
-//     if (discriminant < 0)
-//         return -1.0f;
-    
-//     float sqrt_discriminant = sqrtf(discriminant);
-//     float t1 = (-b - sqrt_discriminant) / (2 * a);
-//     float t2 = (-b + sqrt_discriminant) / (2 * a);
-    
-//     float t = -1.0f;
-//     if (t1 > 0.001f)
-//     {
-//         t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
-//         float h = dot(sub_vec(p, current->origin), axis);
-//         if (h >= 0 && h <= height)
-//             t = t1;
-//     }
-//     if (t2 > 0.001f && (t < 0 || t2 < t))
-//     {
-//         t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
-//         float h = dot(sub_vec(p, current->origin), axis);
-//         if (h >= 0 && h <= height)
-//             t = t2;
-//     }
-//     return t;
-// }
+
 t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
 {
     t_object *current = data->objects;
@@ -249,26 +209,6 @@ t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
     return point;
 }
 
-// float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
-// {
-//     t_vec3 L = sub_vec(ray_origin, current->origin);
-//     float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
-//     float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
-//     float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
-//     float discriminant = b * b - 4 * a * c;
-//     if (discriminant < 0)
-//         return -1.0f;
-//     float sqrt_discriminant = sqrtf(discriminant);
-//     float t1 = (-b - sqrt_discriminant) / (2 * a);
-//     float t2 = (-b + sqrt_discriminant) / (2 * a);
-
-//     // khasni ncheki cylinder height 
-//     if (t1 > 0.001f)
-//         return t1;
-//     if (t2 > 0.001f)
-//         return t2;
-//     return -1.0f;
-// }
 float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
 {
     t_vec3 L = sub_vec(ray_origin, current->origin);
@@ -350,12 +290,16 @@ int    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float 
     float   intensity;
     t_vec3  light_dir_n;
     int     color;
+    int r, g, b, r_2 = 1, g_2 = 1, b_2 = 1;
 
     light = data->light;
     intensity = 0.25f;
     while (light)
     {
         light_dir_n = normalize(sub_vec(light->origin, point->origin));
+        r_2 *= light->R;
+        g_2 *= light->G;
+        b_2 *= light->B;
         if (!is_shadow(data, *point, light_dir_n, light->origin))
             intensity += fmax(0.0f, dot(normal, light_dir_n)) * light->ratio;
         light = light->next;
@@ -364,9 +308,9 @@ int    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float 
     if (intensity > *max)
         *max = intensity;
     intensity = fmin(1.0f, intensity);
-    int r = (int)(point->obj->R * intensity);
-    int g = (int)(point->obj->G * intensity);
-    int b = (int)(point->obj->B * intensity);
+    r = (int)(point->obj->R * intensity);
+    g = (int)(point->obj->G * intensity);
+    b = (int)(point->obj->B * intensity);
     color = (r << 16) | (g << 8) | b;
     return (color);
 }
@@ -411,6 +355,9 @@ void rays_setup(t_minirt *data)
                     float k = radius / height;
                     normal = normalize(sub_vec(apex_to_point, mul_vec(axis, k * k * h)));
                 }
+                // if () {
+                
+                // }
                 color = handle_light_shadow(data, &point, normal, &max);
                 my_mlx_p_pix(color, i, j, data);
             }
@@ -420,5 +367,4 @@ void rays_setup(t_minirt *data)
         }
         i++;
     }
-    printf("%f\n", max);
 }

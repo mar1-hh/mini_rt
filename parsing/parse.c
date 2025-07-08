@@ -1,5 +1,6 @@
 #include "../minirt.h"
 #include <stdio.h>
+#include <string.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
 
@@ -24,6 +25,18 @@ void skip_space(char **line)
 	while (ft_isspace(**line))
 		(*line)++;
 }
+t_vec3 parse_vec3(char **line)
+{
+	t_vec3 vec;
+	
+	vec = (t_vec3){0, 0, 0};
+	vec.x = ft_atof(*line);
+	skip_exept(line, ',');
+	vec.y = ft_atof(*line);
+	skip_exept(line, ',');
+	vec.z = ft_atof(*line);
+	return vec;
+}
 void parse_ambient(char *line, t_ambient *ambient)
 {
 	
@@ -46,11 +59,7 @@ void parse_light(char *line, t_light *light)
 		line++;
 	while (ft_isspace(*line))
 		line++;
-	light->origin.x = ft_atof(line);
-	skip_exept(&line, ',');
-	light->origin.y = ft_atof(line);
-	skip_exept(&line, ',');
-	light->origin.z = ft_atof(line);
+	light->origin = parse_vec3(&line);
 	skip_space(&line);
 	light->ratio = ft_atof(line);
 	skip_space(&line);
@@ -67,21 +76,21 @@ void parse_camera(char *line, t_camera *camera)
 		line++;
 	while (ft_isspace(*line))
 		line++;
-	camera->origin.x = ft_atof(line);
-	skip_exept(&line, ',');
-	camera->origin.y = ft_atof(line);
-	skip_exept(&line, ',');
-	camera->origin.z = ft_atof(line);
+	camera->origin = parse_vec3(&line);
 	skip_space(&line);
-	camera->normal.x = ft_atof(line);
-	skip_exept(&line, ',');
-	camera->normal.y = ft_atof(line);
-	skip_exept(&line, ',');
-	camera->normal.z = ft_atof(line);
+	camera->normal = parse_vec3(&line);
 	skip_space(&line);
 	camera->fov = ft_atof(line);
 }
-
+int check_texture_type(char *texture)
+{
+	if (strncmp(texture, "checker", 7) == 0)
+		return CHECKER;
+	else if (strncmp(texture, "bump", 4) == 0)
+		return BUMP;
+	else
+		return NONE;
+}
 void parse_plane(char *line, t_object *object)
 {
 	object->type = PLANE;
@@ -89,23 +98,18 @@ void parse_plane(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->origin.x = ft_atof(line);
-	skip_exept(&line, ',');
-	object->origin.y = ft_atof(line);
-	skip_exept(&line, ',');
-	object->origin.z = ft_atof(line);
+	object->origin = parse_vec3(&line);
 	skip_space(&line);
-	object->normal.x = ft_atof(line);
-	skip_exept(&line, ',');
-	object->normal.y = ft_atof(line);
-	skip_exept(&line, ',');
-	object->normal.z = ft_atof(line);
+	object->normal = parse_vec3(&line);
 	skip_space(&line);
 	object->R = atoi(line);
 	skip_exept(&line, ',');
 	object->G = atoi(line);
 	skip_exept(&line, ',');
 	object->B = atoi(line);
+	while (ft_isspace(*line))
+        line++;
+	object->texture = check_texture_type(line);
 }
 
 void parse_sphere(char *line, t_object *object)
@@ -115,11 +119,7 @@ void parse_sphere(char *line, t_object *object)
         line += 2;
     while (ft_isspace(*line))
         line++;
-    object->origin.x = ft_atof(line);
-    skip_exept(&line, ',');
-    object->origin.y = ft_atof(line);
-    skip_exept(&line, ',');
-    object->origin.z = ft_atof(line);
+    object->origin = parse_vec3(&line);
     while (*line && !ft_isspace(*line)) 
         line++;
     while (ft_isspace(*line))
@@ -135,6 +135,9 @@ void parse_sphere(char *line, t_object *object)
     skip_exept(&line, ',');
     object->B = ft_atoi(line);
     object->next = NULL;
+	while (ft_isspace(*line))
+        line++;
+	object->texture = check_texture_type(line);
 }
 
 void parse_cylinder(char *line, t_object *object)
@@ -144,17 +147,9 @@ void parse_cylinder(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->origin.x = ft_atof(line);
-	skip_exept(&line, ',');
-	object->origin.y = ft_atof(line);
-	skip_exept(&line, ',');
-	object->origin.z = ft_atof(line);
+	object->origin = parse_vec3(&line);
 	skip_space(&line);
-	object->normal.x = ft_atof(line);
-	skip_exept(&line, ',');
-	object->normal.y = ft_atof(line);
-	skip_exept(&line, ',');
-	object->normal.z = ft_atof(line);
+	object->normal = parse_vec3(&line);
 	skip_space(&line);
 	object->diameter = ft_atof(line);
 	skip_space(&line);
@@ -165,6 +160,9 @@ void parse_cylinder(char *line, t_object *object)
 	object->G = ft_atoi(line);
 	skip_exept(&line, ',');
 	object->B = ft_atoi(line);
+	while (ft_isspace(*line))
+        line++;
+	object->texture = check_texture_type(line);
 }
 
 void parse_cone(char *line, t_object *object)
@@ -174,17 +172,9 @@ void parse_cone(char *line, t_object *object)
 		line += 2;
 	while (ft_isspace(*line))
 		line++;
-	object->origin.x = ft_atof(line);
-	skip_exept(&line, ',');
-	object->origin.y = ft_atof(line);
-	skip_exept(&line, ',');
-	object->origin.z = ft_atof(line);
+	object->origin = parse_vec3(&line);
 	skip_space(&line);
-	object->normal.x = ft_atof(line);
-	skip_exept(&line, ',');
-	object->normal.y = ft_atof(line);
-	skip_exept(&line, ',');
-	object->normal.z = ft_atof(line);
+	object->normal = parse_vec3(&line);
 	skip_space(&line);
 	object->diameter = ft_atof(line);
 	skip_space(&line);
@@ -195,6 +185,9 @@ void parse_cone(char *line, t_object *object)
 	object->G = ft_atoi(line);
 	skip_exept(&line, ',');
 	object->B = ft_atoi(line);
+	while (ft_isspace(*line))
+        line++;
+	object->texture = check_texture_type(line);
 }
 
 void parse_file(char *filename, t_minirt *data)

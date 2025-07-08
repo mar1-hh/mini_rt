@@ -356,6 +356,7 @@ int    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float 
     float   intensity;
     t_vec3  light_dir_n;
     int     color;
+    t_color clr = {0, 0, 0};
 
     light = data->light;
     intensity = 0.25f;
@@ -420,8 +421,6 @@ void rays_setup(t_minirt *data)
                 color = handle_light_shadow(data, &point, normal, &max);
                 my_mlx_p_pix(color, i, j, data);
             }
-            else
-                my_mlx_p_pix(0x000000, i, j, data);
             j++;
         }
         i++;

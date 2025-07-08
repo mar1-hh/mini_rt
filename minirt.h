@@ -34,6 +34,13 @@ typedef struct s_vec3
 	float z;
 }   t_vec3;
 
+typedef struct s_color
+{
+	int x;
+	int y;
+	int z;
+}   t_color;
+
 typedef struct s_object
 {
 	t_types	type;

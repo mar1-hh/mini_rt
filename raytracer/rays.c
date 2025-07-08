@@ -129,6 +129,89 @@ float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current
     return -1.0f;
 }
 
+float intersect_cone_shadow(t_vec3 *light, t_vec3 ray_direction, t_object *current)
+{
+    t_vec3 co = sub_vec(*light, current->origin);
+    t_vec3 axis = normalize(current->normal);
+    float radius = current->diameter / 2.0f;
+    float height = current->height;
+    float k = radius / height;
+    float k_squared = k * k;
+    t_vec3 v = ray_direction;
+    t_vec3 w = co;
+    float v_dot_axis = dot(v, axis);
+    float w_dot_axis = dot(w, axis);
+    float a = dot(v, v) - (1 + k_squared) * v_dot_axis * v_dot_axis;
+    float b = 2 * (dot(v, w) - (1 + k_squared) * v_dot_axis * w_dot_axis);
+    float c = dot(w, w) - (1 + k_squared) * w_dot_axis * w_dot_axis;
+    
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    
+    float sqrt_discriminant = sqrtf(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2 * a);
+    float t2 = (-b + sqrt_discriminant) / (2 * a);
+    
+    float t = -1.0f;
+    if (t1 > 0.001f)
+    {
+        t_vec3 p = add_vec(*light, mul_vec(ray_direction, t1));
+        float h = dot(sub_vec(p, current->origin), axis);
+        if (h >= 0 && h <= height)
+            t = t1;
+    }
+    if (t2 > 0.001f && (t < 0 || t2 < t))
+    {
+        t_vec3 p = add_vec(*light, mul_vec(ray_direction, t2));
+        float h = dot(sub_vec(p, current->origin), axis);
+        if (h >= 0 && h <= height)
+            t = t2;
+    }
+    return t;
+}
+
+float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
+{
+    t_vec3 co = sub_vec(data->camera.origin, current->origin);
+    t_vec3 axis = normalize(current->normal);
+    float radius = current->diameter / 2.0f;
+    float height = current->height;
+    float k = radius / height;
+    float k_squared = k * k;
+    t_vec3 v = ray_direction;
+    t_vec3 w = co;
+    float v_dot_axis = dot(v, axis);
+    float w_dot_axis = dot(w, axis);
+    float a = dot(v, v) - (1 + k_squared) * v_dot_axis * v_dot_axis;
+    float b = 2 * (dot(v, w) - (1 + k_squared) * v_dot_axis * w_dot_axis);
+    float c = dot(w, w) - (1 + k_squared) * w_dot_axis * w_dot_axis;
+    
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    
+    float sqrt_discriminant = sqrtf(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2 * a);
+    float t2 = (-b + sqrt_discriminant) / (2 * a);
+    
+    float t = -1.0f;
+    if (t1 > 0.001f)
+    {
+        t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
+        float h = dot(sub_vec(p, current->origin), axis);
+        if (h >= 0 && h <= height)
+            t = t1;
+    }
+    if (t2 > 0.001f && (t < 0 || t2 < t))
+    {
+        t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
+        float h = dot(sub_vec(p, current->origin), axis);
+        if (h >= 0 && h <= height)
+            t = t2;
+    }
+    return t;
+}
 t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
 {
     t_object *current = data->objects;
@@ -149,6 +232,8 @@ t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
             distance = intersect_plane(data, ray_direction, current);
         else if (current->type == CYLINDER)
             distance = intersect_cylinder(data, ray_direction, current);
+        else if (current->type == CONE)
+            distance = intersect_cone(data, ray_direction, current);
         if (distance > 0.001f && distance < closest_distance) {
             closest_obj = current;
             closest_distance = distance;
@@ -230,6 +315,7 @@ float intersect_sphere_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object 
     return -1.0f;
 }
 
+
 int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_light)
 {
     float   max_dstance;
@@ -251,6 +337,11 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
                 obj = obj->next;
                 continue ;
             }
+            else if (obj->type == CONE)
+            {
+                dstance = intersect_cone_shadow(&origin_light, light_dir_n, obj);
+            }
+            
             if (dstance > 0.0f && dstance < max_dstance)
                 return (1);
         }
@@ -267,7 +358,7 @@ int    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float 
     int     color;
 
     light = data->light;
-    intensity = 0.2f;
+    intensity = 0.25f;
     while (light)
     {
         light_dir_n = normalize(sub_vec(light->origin, point->origin));
@@ -314,6 +405,17 @@ void rays_setup(t_minirt *data)
                 {
                     t_vec3 axis_point = {point.obj->origin.x, point.origin.y, point.obj->origin.z};
                     normal = normalize(sub_vec(point.origin, axis_point));
+                }
+                else if (point.obj->type == CONE)
+                {
+                    t_vec3 axis = normalize(point.obj->normal);
+                    t_vec3 apex_to_point = sub_vec(point.origin, point.obj->origin);
+                    float h = dot(apex_to_point, axis);
+                    t_vec3 projected = sub_vec(apex_to_point, mul_vec(axis, h));
+                    float radius = point.obj->diameter / 2.0f;
+                    float height = point.obj->height;
+                    float k = radius / height;
+                    normal = normalize(sub_vec(apex_to_point, mul_vec(axis, k * k * h)));
                 }
                 color = handle_light_shadow(data, &point, normal, &max);
                 my_mlx_p_pix(color, i, j, data);

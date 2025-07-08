@@ -167,6 +167,36 @@ void parse_cylinder(char *line, t_object *object)
 	object->B = ft_atoi(line);
 }
 
+void parse_cone(char *line, t_object *object)
+{
+	object->type = CONE;
+	if (line[0] == 'c' && line[1] == 'o')
+		line += 2;
+	while (ft_isspace(*line))
+		line++;
+	object->origin.x = ft_atof(line);
+	skip_exept(&line, ',');
+	object->origin.y = ft_atof(line);
+	skip_exept(&line, ',');
+	object->origin.z = ft_atof(line);
+	skip_space(&line);
+	object->normal.x = ft_atof(line);
+	skip_exept(&line, ',');
+	object->normal.y = ft_atof(line);
+	skip_exept(&line, ',');
+	object->normal.z = ft_atof(line);
+	skip_space(&line);
+	object->diameter = ft_atof(line);
+	skip_space(&line);
+	object->height = ft_atof(line);
+	skip_space(&line);
+	object->R = ft_atoi(line);
+	skip_exept(&line, ',');
+	object->G = ft_atoi(line);
+	skip_exept(&line, ',');
+	object->B = ft_atoi(line);
+}
+
 void parse_file(char *filename, t_minirt *data)
 {
 	char *line;
@@ -210,7 +240,8 @@ void parse_file(char *filename, t_minirt *data)
 			parse_camera(line, &data->camera);
 		if ((line[0] == 'p' && line[1] == 'l')
 			|| (line[0] == 'c' && line[1] == 'y')
-			|| (line[0] == 's' && line[1] == 'p'))
+			|| (line[0] == 's' && line[1] == 'p')
+			|| (line[0] == 'c' && line[1] == 'o'))
 		{
 			new = malloc(sizeof(t_object));
 			if (!new)
@@ -231,6 +262,8 @@ void parse_file(char *filename, t_minirt *data)
 				parse_sphere(line, new);
 			if (line[0] == 'c' && line[1] == 'y')
 				parse_cylinder(line, new);
+			if (line[0] == 'c' && line[1] == 'o')
+				parse_cone(line, new);
 		}
 	}
 }

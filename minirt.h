@@ -24,6 +24,7 @@ typedef enum    e_types
 	SPHERE,
 	PLANE,
 	CYLINDER,
+	CONE,
 }   t_types;
 
 typedef struct s_vec3
@@ -37,12 +38,13 @@ typedef struct s_object
 {
 	t_types	type;
 	t_vec3	origin;
-	float		diameter;
+	t_vec3	normal;
 	int R;
 	int G;
 	int B;
-	t_vec3	normal;
-	float height;
+	float	diameter;
+	float	height;
+	// float angle;
 	struct s_object *next;
 }   t_object;
 

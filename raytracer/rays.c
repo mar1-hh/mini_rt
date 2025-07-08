@@ -129,6 +129,48 @@ float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current
     return -1.0f;
 }
 
+float intersect_cone_shadow(t_vec3 *light, t_vec3 ray_direction, t_object *current)
+{
+    t_vec3 co = sub_vec(*light, current->origin);
+    t_vec3 axis = normalize(current->normal);
+    float radius = current->diameter / 2.0f;
+    float height = current->height;
+    float k = radius / height;
+    float k_squared = k * k;
+    t_vec3 v = ray_direction;
+    t_vec3 w = co;
+    float v_dot_axis = dot(v, axis);
+    float w_dot_axis = dot(w, axis);
+    float a = dot(v, v) - (1 + k_squared) * v_dot_axis * v_dot_axis;
+    float b = 2 * (dot(v, w) - (1 + k_squared) * v_dot_axis * w_dot_axis);
+    float c = dot(w, w) - (1 + k_squared) * w_dot_axis * w_dot_axis;
+    
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    
+    float sqrt_discriminant = sqrtf(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2 * a);
+    float t2 = (-b + sqrt_discriminant) / (2 * a);
+    
+    float t = -1.0f;
+    if (t1 > 0.001f)
+    {
+        t_vec3 p = add_vec(*light, mul_vec(ray_direction, t1));
+        float h = dot(sub_vec(p, current->origin), axis);
+        if (h >= 0 && h <= height)
+            t = t1;
+    }
+    if (t2 > 0.001f && (t < 0 || t2 < t))
+    {
+        t_vec3 p = add_vec(*light, mul_vec(ray_direction, t2));
+        float h = dot(sub_vec(p, current->origin), axis);
+        if (h >= 0 && h <= height)
+            t = t2;
+    }
+    return t;
+}
+
 float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
 {
     t_vec3 co = sub_vec(data->camera.origin, current->origin);
@@ -291,8 +333,7 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
             }
             else if (obj->type == CONE)
             {
-                obj = obj->next;
-                continue ;
+                dstance = intersect_cone_shadow(&origin_light, light_dir_n, obj);
             }
             
             if (dstance > 0.0f && dstance < max_dstance)

@@ -344,11 +344,12 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
     return (0);
 }
 
-float    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
+int    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *max)
 {
     t_light *light;
     float   intensity;
     t_vec3  light_dir_n;
+    int     color;
 
     light = data->light;
     intensity = 0.25f;
@@ -360,8 +361,14 @@ float    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
         light = light->next;
     }
     intensity += data->ambient.ratio;
+    if (intensity > *max)
+        *max = intensity;
     intensity = fmin(1.0f, intensity);
-    return (intensity);
+    int r = (int)(point->obj->R * intensity);
+    int g = (int)(point->obj->G * intensity);
+    int b = (int)(point->obj->B * intensity);
+    color = (r << 16) | (g << 8) | b;
+    return (color);
 }
 
 void rays_setup(t_minirt *data)
@@ -370,9 +377,11 @@ void rays_setup(t_minirt *data)
     t_point point;
     t_vec3 normal;
     float intensity;
+    float   max;
     int color;
 
     i = 0;
+    max = 0;
     while (i < WIDTH) 
     {
         j = 0;
@@ -402,11 +411,7 @@ void rays_setup(t_minirt *data)
                     float k = radius / height;
                     normal = normalize(sub_vec(apex_to_point, mul_vec(axis, k * k * h)));
                 }
-                intensity = handle_light_shadow(data, &point, normal);
-                int r = (int)(point.obj->R * intensity);
-                int g = (int)(point.obj->G * intensity);
-                int b = (int)(point.obj->B * intensity);
-                color = (r << 16) | (g << 8) | b;
+                color = handle_light_shadow(data, &point, normal, &max);
                 my_mlx_p_pix(color, i, j, data);
             }
             else
@@ -415,4 +420,5 @@ void rays_setup(t_minirt *data)
         }
         i++;
     }
+    printf("%f\n", max);
 }

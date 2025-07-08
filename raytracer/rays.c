@@ -284,36 +284,41 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
     return (0);
 }
 
-int    handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *max)
+int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *max)
 {
     t_light *light;
     float   intensity;
     t_vec3  light_dir_n;
-    int     color;
-    int r, g, b, r_2 = 1, g_2 = 1, b_2 = 1;
+    float   lfar9;
+    float   r = 0, g = 0, b = 0;
 
     light = data->light;
-    intensity = 0.25f;
+    intensity = 0.0f;
     while (light)
     {
         light_dir_n = normalize(sub_vec(light->origin, point->origin));
-        r_2 *= light->R;
-        g_2 *= light->G;
-        b_2 *= light->B;
         if (!is_shadow(data, *point, light_dir_n, light->origin))
-            intensity += fmax(0.0f, dot(normal, light_dir_n)) * light->ratio;
+        {
+            lfar9 = fmax(0.0f, dot(normal, light_dir_n));
+            r += point->obj->R * light->R / 255.0f * lfar9 * light->ratio;
+            g += point->obj->G * light->G / 255.0f * lfar9 * light->ratio;
+            b += point->obj->B * light->B / 255.0f * lfar9 * light->ratio;
+            intensity += lfar9 * light->ratio;
+        }
         light = light->next;
     }
+    r += point->obj->R * data->ambient.R / 255.0f * data->ambient.ratio;
+    g += point->obj->G * data->ambient.G / 255.0f * data->ambient.ratio;
+    b += point->obj->B * data->ambient.B / 255.0f * data->ambient.ratio;
     intensity += data->ambient.ratio;
     if (intensity > *max)
         *max = intensity;
-    intensity = fmin(1.0f, intensity);
-    r = (int)(point->obj->R * intensity);
-    g = (int)(point->obj->G * intensity);
-    b = (int)(point->obj->B * intensity);
-    color = (r << 16) | (g << 8) | b;
-    return (color);
+    r = fmin(r, 255.0f);
+    g = fmin(g, 255.0f);
+    b = fmin(b, 255.0f);
+    return ((int)r << 16) | ((int)g << 8) | (int)b;
 }
+
 
 void rays_setup(t_minirt *data)
 {

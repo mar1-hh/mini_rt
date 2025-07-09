@@ -107,6 +107,9 @@ typedef struct s_point
 	float distance;
 	bool hit_something;
 	t_object *obj;
+	int		r;
+	int		g;
+	int		b;
 	// int color;
 }	t_point;
 typedef struct s_minirt

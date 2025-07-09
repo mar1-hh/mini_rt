@@ -292,24 +292,45 @@ int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *ma
     float   lfar9;
     float   r = 0, g = 0, b = 0;
 
+    
     light = data->light;
-    intensity = 0.0f;
+    intensity = 0.2f;
     while (light)
     {
         light_dir_n = normalize(sub_vec(light->origin, point->origin));
         if (!is_shadow(data, *point, light_dir_n, light->origin))
         {
             lfar9 = fmax(0.0f, dot(normal, light_dir_n));
-            r += point->obj->R * light->R / 255.0f * lfar9 * light->ratio;
-            g += point->obj->G * light->G / 255.0f * lfar9 * light->ratio;
-            b += point->obj->B * light->B / 255.0f * lfar9 * light->ratio;
+            if (point->obj->texture == CHECKER)
+            {
+                r += point->r * light->R / 255.0f * lfar9 * light->ratio;
+                g += point->g * light->G / 255.0f * lfar9 * light->ratio;
+                b += point->b * light->B / 255.0f * lfar9 * light->ratio;
+            }
+            else
+            {
+                // printf("1337\n");
+                r += point->obj->R * light->R / 255.0f * lfar9 * light->ratio;
+                g += point->obj->G * light->G / 255.0f * lfar9 * light->ratio;
+                b += point->obj->B * light->B / 255.0f * lfar9 * light->ratio;
+            }
             intensity += lfar9 * light->ratio;
         }
         light = light->next;
     }
-    r += point->obj->R * data->ambient.R / 255.0f * data->ambient.ratio;
-    g += point->obj->G * data->ambient.G / 255.0f * data->ambient.ratio;
-    b += point->obj->B * data->ambient.B / 255.0f * data->ambient.ratio;
+
+    if (point->obj->texture == CHECKER)
+    {
+        r += point->r * data->ambient.R / 255.0f * data->ambient.ratio;
+        g += point->g * data->ambient.G / 255.0f * data->ambient.ratio;  
+        b += point->b * data->ambient.B / 255.0f * data->ambient.ratio;
+    }
+    else
+    {
+        r += point->obj->R * data->ambient.R / 255.0f * data->ambient.ratio;
+        g += point->obj->G * data->ambient.G / 255.0f * data->ambient.ratio;
+        b += point->obj->B * data->ambient.B / 255.0f * data->ambient.ratio;
+    }
     intensity += data->ambient.ratio;
     if (intensity > *max)
         *max = intensity;
@@ -319,6 +340,68 @@ int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *ma
     return ((int)r << 16) | ((int)g << 8) | (int)b;
 }
 
+void handle_checker(t_point *point, t_object *obj)
+{
+    int check_x;
+    int check_y;
+    int check_z;
+    float scale = 10;
+    int checker; 
+    if (obj->type == SPHERE) {
+        t_vec3 hit = normalize(sub_vec(point->origin, obj->origin));
+
+        float u = 0.5 + atan2(hit.z, hit.x) / (2 * M_PI);
+        float v = 0.5 - asin(hit.y) / M_PI;
+
+        check_x = (int)floor(u * scale);
+        check_y = (int)floor(v * scale);
+        checker = check_x + check_y;
+    }
+
+    else if (obj->type == PLANE) {
+        check_x = (int)floor(point->origin.x * scale);
+        check_y = (int)floor(point->origin.y * scale);
+        check_z = (int)floor(point->origin.z * scale);
+        checker = check_x + check_y + check_z;
+    }
+    else if (obj->type == CYLINDER)
+    {
+        t_vec3 local_hit = sub_vec(point->origin, obj->origin);
+        float theta = atan2(local_hit.z, local_hit.x);
+        float u = (theta + M_PI) / (2 * M_PI);
+
+        float v = local_hit.y;
+
+        check_x = (int)floor(u * scale);
+        check_y = (int)floor(v * scale);
+
+        checker = check_x + check_y;
+    }
+    else if (obj->type == CONE)
+    {
+        t_vec3 local_hit = sub_vec(point->origin, obj->origin);
+        float theta = atan2(local_hit.z, local_hit.x);
+        float u = (theta + M_PI) / (2 * M_PI);
+        
+        float v = local_hit.y;
+        
+        check_x = (int)floor(u * scale);
+        check_y = (int)floor(v * scale);
+        checker = check_x + check_y;
+    }
+    if (checker % 2 == 0)
+    {
+        point->r = 255;
+        point->g = 255;
+        point->b = 255;
+    }
+    else
+    {
+        point->r = 0;
+        point->g = 0;
+        point->b = 0;
+    }
+}
 
 void rays_setup(t_minirt *data)
 {
@@ -360,10 +443,11 @@ void rays_setup(t_minirt *data)
                     float k = radius / height;
                     normal = normalize(sub_vec(apex_to_point, mul_vec(axis, k * k * h)));
                 }
-                // if () {
+                if (point.obj->texture == CHECKER)
+                    handle_checker(&point, point.obj);
                 
-                // }
                 color = handle_light_shadow(data, &point, normal, &max);
+                    // printf("%d\n", color);
                 my_mlx_p_pix(color, i, j, data);
             }
             j++;

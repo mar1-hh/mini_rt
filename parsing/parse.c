@@ -107,8 +107,7 @@ void parse_plane(char *line, t_object *object)
 	object->G = atoi(line);
 	skip_exept(&line, ',');
 	object->B = atoi(line);
-	while (ft_isspace(*line))
-        line++;
+	skip_space(&line);
 	object->texture = check_texture_type(line);
 }
 
@@ -135,8 +134,7 @@ void parse_sphere(char *line, t_object *object)
     skip_exept(&line, ',');
     object->B = ft_atoi(line);
     object->next = NULL;
-	while (ft_isspace(*line))
-        line++;
+	skip_space(&line);
 	object->texture = check_texture_type(line);
 }
 
@@ -160,8 +158,7 @@ void parse_cylinder(char *line, t_object *object)
 	object->G = ft_atoi(line);
 	skip_exept(&line, ',');
 	object->B = ft_atoi(line);
-	while (ft_isspace(*line))
-        line++;
+	skip_space(&line);
 	object->texture = check_texture_type(line);
 }
 
@@ -185,8 +182,7 @@ void parse_cone(char *line, t_object *object)
 	object->G = ft_atoi(line);
 	skip_exept(&line, ',');
 	object->B = ft_atoi(line);
-	while (ft_isspace(*line))
-        line++;
+	skip_space(&line);
 	object->texture = check_texture_type(line);
 }
 

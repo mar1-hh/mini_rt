@@ -13,8 +13,8 @@
 # include <mlx.h>
 #define MAX_F (1.0f / 0.0f)
 
-# define WIDTH 1920
-# define HEIGHT 1080
+# define WIDTH 1000
+# define HEIGHT 1000
 
 typedef enum    e_types
 {

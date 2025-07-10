@@ -284,13 +284,23 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
     return (0);
 }
 
+t_vec3 reflect(t_vec3 incident, t_vec3 normal)
+{
+    return sub_vec(incident, mul_vec(normal, 2 * dot(incident, normal)));
+}
+
+
 int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *max)
 {
     t_light *light;
     float   intensity;
     t_vec3  light_dir_n;
     float   lfar9;
-    float   r = 0, g = 0, b = 0;
+    float shininess = 200;
+    float   r = 0, g = 0, b = 0, spec;
+    float   specular_strength = 0.5;
+    t_vec3  reflect_dir;
+	t_vec3  view_dir;
 
     
     light = data->light;
@@ -301,11 +311,17 @@ int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *ma
         if (!is_shadow(data, *point, light_dir_n, light->origin))
         {
             lfar9 = fmax(0.0f, dot(normal, light_dir_n));
+            reflect_dir = reflect(mul_vec(light_dir_n, -1), normal);
+            view_dir = normalize(sub_vec(data->camera.origin, point->origin));
+            spec = powf(fmax(dot(view_dir, reflect_dir), 0.0f), shininess);
             if (point->obj->texture == CHECKER)
             {
                 r += point->r * light->R / 255.0f * lfar9 * light->ratio;
                 g += point->g * light->G / 255.0f * lfar9 * light->ratio;
                 b += point->b * light->B / 255.0f * lfar9 * light->ratio;
+                r += light->R / specular_strength * spec * light->ratio;
+                g += light->G / specular_strength * spec * light->ratio;
+                b += light->B / specular_strength * spec * light->ratio;
             }
             else
             {
@@ -313,6 +329,9 @@ int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal, float *ma
                 r += point->obj->R * light->R / 255.0f * lfar9 * light->ratio;
                 g += point->obj->G * light->G / 255.0f * lfar9 * light->ratio;
                 b += point->obj->B * light->B / 255.0f * lfar9 * light->ratio;
+                r += light->R / specular_strength * spec * light->ratio;
+                g += light->G / specular_strength * spec * light->ratio;
+                b += light->B / specular_strength * spec * light->ratio;
             }
             intensity += lfar9 * light->ratio;
         }
@@ -447,7 +466,6 @@ void rays_setup(t_minirt *data)
                     handle_checker(&point, point.obj);
                 
                 color = handle_light_shadow(data, &point, normal, &max);
-                    // printf("%d\n", color);
                 my_mlx_p_pix(color, i, j, data);
             }
             j++;

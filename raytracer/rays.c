@@ -104,20 +104,57 @@ float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current)
         return -1.0f;
     return t;
 }
-float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current)
+float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current) 
 {
-    t_vec3 L = sub_vec(data->camera.origin, current->origin);
-    float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
-    float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
-    float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
-    float t = check_descriminant(a, b, c);
-
+    // Vector from ray origin to cylinder base
+    t_vec3 oc = sub_vec(data->camera.origin, current->origin);
+    
+    // Cylinder axis (should be normalized)
+    t_vec3 axis = normalize(current->normal);
+    
+    // Project ray direction and oc onto plane perpendicular to axis
+    float dot_rd_axis = dot(ray_direction, axis);
+    float dot_oc_axis = dot(oc, axis);
+    
+    // Components perpendicular to axis
+    t_vec3 rd_perp = sub_vec(ray_direction, mul_vec(axis, dot_rd_axis));
+    t_vec3 oc_perp = sub_vec(oc, mul_vec(axis, dot_oc_axis));
+    
+    // Quadratic equation coefficients
+    float a = dot(rd_perp, rd_perp);
+    float b = 2.0f * dot(oc_perp, rd_perp);
+    float radius = current->diameter / 2.0f;
+    float c = dot(oc_perp, oc_perp) - radius * radius;
+    
+    // Check if we have a valid intersection
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    
+    float sqrt_discriminant = sqrt(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2.0f * a);
+    float t2 = (-b + sqrt_discriminant) / (2.0f * a);
+    
+    // Choose the closest positive intersection
+    float t = -1.0f;
+    if (t1 > 0.001f)
+        t = t1;
+    else if (t2 > 0.001f)
+        t = t2;
+    
     if (t > 0.001f)
     {
+        // Calculate intersection point
         t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t));
-        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+        
+        // Check if intersection is within cylinder height
+        t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
+        float height_projection = dot(point_to_base, axis);
+        
+        if (height_projection >= 0.0f && height_projection <= current->height)
             return t;
     }
+    
     return -1.0f;
 }
 
@@ -208,21 +245,73 @@ t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
     }
     return point;
 }
+// float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
+// {
+//     t_vec3 L = sub_vec(ray_origin, current->origin);
+//     float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
+//     float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
+//     float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
+//     float t = check_descriminant(a, b, c);
 
-float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
+//     if (t > 0.001f)
+//     {
+//         t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t));
+//         if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+//             return t;
+//     }
+//     return -1.0f;
+// }
+float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current) 
 {
-    t_vec3 L = sub_vec(ray_origin, current->origin);
-    float a = ray_direction.x * ray_direction.x + ray_direction.z * ray_direction.z;
-    float b = 2 * (ray_direction.x * L.x + ray_direction.z * L.z);
-    float c = L.x * L.x + L.z * L.z - (current->diameter / 2.0f) * (current->diameter / 2.0f);
-    float t = check_descriminant(a, b, c);
-
+    // Vector from ray origin to cylinder base
+    t_vec3 oc = sub_vec(ray_origin, current->origin);
+    
+    // Cylinder axis (should be normalized)
+    t_vec3 axis = normalize(current->normal);
+    
+    // Project ray direction and oc onto plane perpendicular to axis
+    float dot_rd_axis = dot(ray_direction, axis);
+    float dot_oc_axis = dot(oc, axis);
+    
+    // Components perpendicular to axis
+    t_vec3 rd_perp = sub_vec(ray_direction, mul_vec(axis, dot_rd_axis));
+    t_vec3 oc_perp = sub_vec(oc, mul_vec(axis, dot_oc_axis));
+    
+    // Quadratic equation coefficients
+    float a = dot(rd_perp, rd_perp);
+    float b = 2.0f * dot(oc_perp, rd_perp);
+    float radius = current->diameter / 2.0f;
+    float c = dot(oc_perp, oc_perp) - radius * radius;
+    
+    // Check if we have a valid intersection
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    
+    float sqrt_discriminant = sqrt(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2.0f * a);
+    float t2 = (-b + sqrt_discriminant) / (2.0f * a);
+    
+    // Choose the closest positive intersection
+    float t = -1.0f;
+    if (t1 > 0.001f)
+        t = t1;
+    else if (t2 > 0.001f)
+        t = t2;
+    
     if (t > 0.001f)
     {
+        // Calculate intersection point
         t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t));
-        if (intersection_point.y >= current->origin.y && intersection_point.y <= current->origin.y + current->height)
+        
+        // Check if intersection is within cylinder height
+        t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
+        float height_projection = dot(point_to_base, axis);
+        
+        if (height_projection >= 0.0f && height_projection <= current->height)
             return t;
     }
+    
     return -1.0f;
 }
 
@@ -421,7 +510,25 @@ void handle_checker(t_point *point, t_object *obj)
         point->b = 0;
     }
 }
-
+t_vec3 get_cylinder_normal(t_vec3 intersection_point, t_object *cylinder)
+{
+    // Cylinder axis (normalized)
+    t_vec3 axis = normalize(cylinder->normal);
+    
+    // Vector from cylinder base to intersection point
+    t_vec3 base_to_point = sub_vec(intersection_point, cylinder->origin);
+    
+    // Project intersection point onto the axis
+    float projection_length = dot(base_to_point, axis);
+    
+    // Find the closest point on the axis
+    t_vec3 axis_point = add_vec(cylinder->origin, mul_vec(axis, projection_length));
+    
+    // Normal is from axis point to intersection point
+    t_vec3 normal = normalize(sub_vec(intersection_point, axis_point));
+    
+    return normal;
+}
 void rays_setup(t_minirt *data)
 {
     int i, j;
@@ -448,9 +555,7 @@ void rays_setup(t_minirt *data)
                     normal = point.obj->normal;
                 else if (point.obj->type == CYLINDER)
                 {
-                    t_vec3 axis_point = {point.obj->origin.x, point.origin.y, point.obj->origin.z};
-                    normal = normalize(sub_vec(point.origin, axis_point));
-                }
+                normal = get_cylinder_normal(point.origin, point.obj);}
                 else if (point.obj->type == CONE)
                 {
                     t_vec3 axis = normalize(point.obj->normal);
@@ -473,3 +578,4 @@ void rays_setup(t_minirt *data)
         i++;
     }
 }
+

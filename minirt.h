@@ -33,6 +33,7 @@ typedef enum e_txture_type
 	CHECKER,
 	BUMP,
 }   t_texture;
+
 typedef struct s_vec3
 {
 	float x;
@@ -42,9 +43,9 @@ typedef struct s_vec3
 
 typedef struct s_color
 {
-	int x;
-	int y;
-	int z;
+	float r;
+	float g;
+	float b;
 }   t_color;
 
 typedef struct s_object
@@ -112,6 +113,7 @@ typedef struct s_point
 	int		b;
 	// int color;
 }	t_point;
+
 typedef struct s_minirt
 {
 	t_object	*objects;
@@ -127,11 +129,25 @@ typedef struct s_minirt
 	int		endian;
 }   t_minirt;
 
+typedef struct s_l_s
+{
+	t_light *light;
+    t_vec3  light_dir_n;
+    t_color  color;
+    float   lfar9;
+    float shininess;
+    float   spec;
+    float   specular_strength;
+    t_vec3  reflect_dir;
+	t_vec3  view_dir;
+}   t_l_s;
+
 void	draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
 void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
 int	is_valide_float(char *str);
 double	ft_atof(char *str);
 void parse_file(char *filename, t_minirt *data);
 void rays_setup(t_minirt *data);
-
+int key_code(int code, t_minirt *data);
+int close_window(t_minirt *data);
 #endif

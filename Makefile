@@ -6,7 +6,8 @@ CFLAGS =
 
 RM = rm -f
 
-SRCS = main.c sphere.c parsing/float_parse.c parsing/parse.c get_next_line/get_next_line.c get_next_line/get_next_line_utils.c raytracer/rays.c
+SRCS = main.c sphere.c parsing/float_parse.c parsing/parse.c get_next_line/get_next_line.c get_next_line/get_next_line_utils.c raytracer/rays.c \
+	event.c
 
 SRCS_OBJ = ${SRCS:.c=.o}
 

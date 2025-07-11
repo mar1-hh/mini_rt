@@ -50,6 +50,8 @@ int main(int ac, char **av)
     parse_file(av[1], &data);	
     rays_setup(&data);
     mlx_put_image_to_window(data.mlx, data.mlx_window, data.img, 0, 0);
+    mlx_key_hook(data.mlx_window, key_code, &data);
+    mlx_hook(data.mlx_window, 17, 0, close_window, &data);
     mlx_loop(data.mlx);
     return (0);
 }

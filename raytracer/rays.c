@@ -291,7 +291,7 @@ t_vec3 reflect(t_vec3 incident, t_vec3 normal)
 
 void init_l_s(t_l_s *data)
 {
-	data->shininess = 700;
+	data->shininess = 500;
 	data->specular_strength = 0.5;
 	data->color.r = 0;
 	data->color.g = 0;
@@ -303,6 +303,20 @@ void	color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c
 	s_l_data->color.r += obj->r * c_light->r / 255.0f * s_l_data->lfar9 * s_l_data->light->ratio;
 	s_l_data->color.g += obj->g * c_light->g / 255.0f * s_l_data->lfar9 * s_l_data->light->ratio;
 	s_l_data->color.b += obj->b * c_light->b / 255.0f * s_l_data->lfar9 * s_l_data->light->ratio;
+}
+
+void	color_handle_ambient(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c_light)
+{
+	s_l_data->color.r += obj->r * c_light->r / 255.0f * s_l_data->lfar9 * data->ambient.ratio;
+	s_l_data->color.g += obj->g * c_light->g / 255.0f * s_l_data->lfar9 * data->ambient.ratio;
+	s_l_data->color.b += obj->b * c_light->b / 255.0f * s_l_data->lfar9 * data->ambient.ratio;
+}
+
+void	clr_reflection(t_l_s *s_l_data)
+{
+	s_l_data->color.r += s_l_data->light->color.r / s_l_data->specular_strength * s_l_data->spec * s_l_data->light->ratio;
+	s_l_data->color.g += s_l_data->light->color.g / s_l_data->specular_strength * s_l_data->spec * s_l_data->light->ratio;
+	s_l_data->color.b += s_l_data->light->color.b / s_l_data->specular_strength * s_l_data->spec * s_l_data->light->ratio;
 }
 
 int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
@@ -321,36 +335,17 @@ int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
 			s_l_data.view_dir = normalize(sub_vec(data->camera.origin, point->origin));
 			s_l_data.spec = powf(fmax(dot(s_l_data.view_dir, s_l_data.reflect_dir), 0.0f), s_l_data.shininess);
 			if (point->obj->texture == CHECKER)
-			{
-				// color_handle_help(data, &s_l_data, )
-				s_l_data.color.r += point->r * s_l_data.light->R / 255.0f * s_l_data.lfar9 * s_l_data.light->ratio;
-				s_l_data.color.g += point->g * s_l_data.light->G / 255.0f * s_l_data.lfar9 * s_l_data.light->ratio;
-				s_l_data.color.b += point->b * s_l_data.light->B / 255.0f * s_l_data.lfar9 * s_l_data.light->ratio;
-			}
+				color_handle_help(data, &s_l_data, &point->color, &s_l_data.light->color);
 			else
-			{
-				s_l_data.color.r += point->obj->R * s_l_data.light->R / 255.0f * s_l_data.lfar9 * s_l_data.light->ratio;
-				s_l_data.color.g += point->obj->G * s_l_data.light->G / 255.0f * s_l_data.lfar9 * s_l_data.light->ratio;
-				s_l_data.color.b += point->obj->B * s_l_data.light->B / 255.0f * s_l_data.lfar9 * s_l_data.light->ratio;
-			}
-			s_l_data.color.r += s_l_data.light->R / s_l_data.specular_strength * s_l_data.spec * s_l_data.light->ratio;
-			s_l_data.color.g += s_l_data.light->G / s_l_data.specular_strength * s_l_data.spec * s_l_data.light->ratio;
-			s_l_data.color.b += s_l_data.light->B / s_l_data.specular_strength * s_l_data.spec * s_l_data.light->ratio;
+				color_handle_help(data, &s_l_data, &point->obj->color, &s_l_data.light->color);
+			clr_reflection(&s_l_data); 
 		}
 		s_l_data.light = s_l_data.light->next;
 	}
 	if (point->obj->texture == CHECKER)
-	{
-		s_l_data.color.r += point->r * data->ambient.R / 255.0f * data->ambient.ratio;
-		s_l_data.color.g += point->g * data->ambient.G / 255.0f * data->ambient.ratio;  
-		s_l_data.color.b += point->b * data->ambient.B / 255.0f * data->ambient.ratio;
-	}
+		color_handle_ambient(data, &s_l_data, &point->color, &data->ambient.color);
 	else
-	{
-		s_l_data.color.r += point->obj->R * data->ambient.R / 255.0f * data->ambient.ratio;
-		s_l_data.color.g += point->obj->G * data->ambient.G / 255.0f * data->ambient.ratio;
-		s_l_data.color.b += point->obj->B * data->ambient.B / 255.0f * data->ambient.ratio;
-	}
+		color_handle_ambient(data, &s_l_data, &point->obj->color, &data->ambient.color);
 	s_l_data.color.r = fmin(s_l_data.color.r, 255.0f);
 	s_l_data.color.g = fmin(s_l_data.color.g, 255.0f);
 	s_l_data.color.b = fmin(s_l_data.color.b, 255.0f);
@@ -408,15 +403,15 @@ void handle_checker(t_point *point, t_object *obj)
 	}
 	if (checker % 2 == 0)
 	{
-		point->r = 255;
-		point->g = 255;
-		point->b = 255;
+		point->color.r = 255;
+		point->color.g = 255;
+		point->color.b = 255;
 	}
 	else
 	{
-		point->r = 0;
-		point->g = 0;
-		point->b = 0;
+		point->color.r = 0;
+		point->color.g = 0;
+		point->color.b = 0;
 	}
 }
 

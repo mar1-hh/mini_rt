@@ -53,9 +53,7 @@ typedef struct s_object
 	t_types	type;
 	t_vec3	origin;
 	t_vec3	normal;
-	int R;
-	int G;
-	int B;
+	t_color	color;
 	float	diameter;
 	float	height;
 	t_texture	texture;
@@ -80,9 +78,7 @@ typedef struct	s_ray
 typedef struct s_ambiant
 {
 	float		ratio;
-	int R;
-	int G;
-	int B;
+	t_color		color;
 }   t_ambient;
 
 typedef struct s_camera
@@ -96,11 +92,9 @@ typedef struct s_light
 {
 	t_vec3	origin;
 	float		ratio;
-	int R;
-	int G;
-	int B;
+	t_color	color;
 	struct s_light *next;
-	}   t_light;
+}   t_light;
 
 typedef struct s_point
 {
@@ -108,9 +102,7 @@ typedef struct s_point
 	float distance;
 	bool hit_something;
 	t_object *obj;
-	int		r;
-	int		g;
-	int		b;
+	t_color	color;
 	// int color;
 }	t_point;
 

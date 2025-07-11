@@ -455,7 +455,6 @@ void rays_setup(t_minirt *data)
 				}
 				if (point.obj->texture == CHECKER)
 					handle_checker(&point, point.obj);
-				
 				color = handle_light_shadow(data, &point, normal);
 				my_mlx_p_pix(color, i, j, data);
 			}

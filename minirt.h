@@ -48,6 +48,17 @@ typedef struct s_color
 	float b;
 }   t_color;
 
+typedef struct s_texdata {
+    void    *img_ptr;
+    char    *data;
+    int     width;
+    int     height;
+    int     bpp;
+    int     size_line;
+    int     endian;
+}   t_texdata;
+
+
 typedef struct s_object
 {
 	t_types	type;
@@ -57,7 +68,7 @@ typedef struct s_object
 	float	diameter;
 	float	height;
 	t_texture	texture;
-	void *texture_data;
+	t_texdata data;
 	struct s_object *next;
 }   t_object;
 

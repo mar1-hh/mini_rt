@@ -110,6 +110,27 @@ void	parse_plane(char *line, t_object *object)
 	object->texture = check_texture_type(line);
 }
 
+char	*ft_strdup_line(char *line)
+{
+	int	i;
+	int	j;
+	char *ptr;
+
+	i = 0;
+	while (line[i] && line[i] != '\n')
+		i++;
+	ptr = ft_calloc(1, i + 1);
+	if (!ptr)
+		return (NULL);
+	j = 0;
+	while (j < i)
+	{
+		ptr[j] = line[j];
+		j++;
+	}
+	return (ptr);
+}
+
 void	parse_sphere(char *line, t_object *object, t_minirt *data)
 {
 	char	*path;
@@ -139,12 +160,14 @@ void	parse_sphere(char *line, t_object *object, t_minirt *data)
 	object->texture = check_texture_type(line);
 	if (object->texture == BUMP)
 	{
-		// zid plath dyal img
-		object->data.img_ptr = mlx_xpm_file_to_image(data->mlx, path,
-				&object->data.width, &object->data.height);
-		object->data.data = mlx_get_data_addr(object->data.img_ptr,
-				&object->data.bpp, &object->data.size_line,
-				&object->data.endian);
+		skip_space(&line);
+		path = ft_strdup_line(line);
+			printf("%sl\n", path);
+			object->data.img_ptr = mlx_xpm_file_to_image(data->mlx, path,
+					&object->data.width, &object->data.height);
+			object->data.data = mlx_get_data_addr(object->data.img_ptr,
+					&object->data.bpp, &object->data.size_line,
+					&object->data.endian);
 	}
 }
 

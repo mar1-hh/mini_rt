@@ -10,7 +10,7 @@
 # include "ft_libft/libft.h"
 # include <stdbool.h>
 // # include "minilibx-linux/mlx.h"
-# include <mlx.h>
+# include "MLX42/include/MLX42/MLX42.h"
 #define MAX_F (1.0f / 0.0f)
 
 # define WIDTH 1000
@@ -123,7 +123,7 @@ typedef struct s_minirt
 	t_ambient	ambient;
 	t_camera	camera;
 	t_light		*light;
-	void	*img;
+	mlx_image_t	*img;
 	void	*mlx;
 	void	*mlx_window;
 	char	*addr;

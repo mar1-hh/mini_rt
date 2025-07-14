@@ -26,10 +26,12 @@ void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data)
 
 void    init_data(t_minirt *data)
 {
-    data->mlx = mlx_init();
+    mlx_set_setting(MLX_MAXIMIZED, true);
+    data->mlx = mlx_init(WIDTH, HEIGHT, "miniRT", 0);
     data->img = mlx_new_image(data->mlx, WIDTH, HEIGHT);
-    data->mlx_window = mlx_new_window(data->mlx, WIDTH, HEIGHT, "minirt");
-    data->addr = mlx_get_data_addr(data->img, &data->bits_per_pexel, &data->line_length, &data->endian);
+    mlx_image_to_window(data->mlx, data->img, 0, 0);
+    // data->mlx_window = mlx_new_window(data->mlx, WIDTH, HEIGHT, "minirt");
+    // data->addr = mlx_get_data_addr(data->img, &data->bits_per_pexel, &data->line_length, &data->endian);
     data->objects = NULL;
     data->light = NULL;
 }
@@ -49,9 +51,11 @@ int main(int ac, char **av)
     init_data(&data);
     parse_file(av[1], &data);	
     rays_setup(&data);
-    mlx_put_image_to_window(data.mlx, data.mlx_window, data.img, 0, 0);
-    mlx_key_hook(data.mlx_window, key_code, &data);
-    mlx_hook(data.mlx_window, 17, 0, close_window, &data);
+    // mlx_put_image_to_window(data.mlx, data.mlx_window, data.img, 0, 0);
+    // mlx_key_hook(data.mlx_window, key_code, &data);
+    // mlx_loop_hook()
+    // mlx_hook(data.mlx_window, 17, 0, close_window, &data);
     mlx_loop(data.mlx);
+    mlx_terminate(data.mlx);
     return (0);
 }

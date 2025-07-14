@@ -135,6 +135,7 @@ void	parse_sphere(char *line, t_object *object, t_minirt *data)
 {
 	char	*path;
 
+	(void)data;
 	object->type = SPHERE;
 	if (line[0] == 's' && line[1] == 'p')
 		line += 2;
@@ -162,12 +163,12 @@ void	parse_sphere(char *line, t_object *object, t_minirt *data)
 	{
 		skip_space(&line);
 		path = ft_strdup_line(line);
-			printf("%sl\n", path);
-			object->data.img_ptr = mlx_xpm_file_to_image(data->mlx, path,
-					&object->data.width, &object->data.height);
-			object->data.data = mlx_get_data_addr(object->data.img_ptr,
-					&object->data.bpp, &object->data.size_line,
-					&object->data.endian);
+		printf("%sl\n", path);
+			// object->data.img_ptr = mlx_xpm_file_to_image(data->mlx, path,
+			// 		&object->data.width, &object->data.height);
+			// object->data.data = mlx_get_data_addr(object->data.img_ptr,
+			// 		&object->data.bpp, &object->data.size_line,
+					// &object->data.endian);
 	}
 }
 

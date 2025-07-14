@@ -1,26 +1,35 @@
 NAME = miniRT
 
 CC = cc
-
-CFLAGS = 
+CFLAGS = -I MLX42/include
 
 RM = rm -f
 
-SRCS = main.c sphere.c parsing/float_parse.c parsing/parse.c get_next_line/get_next_line.c get_next_line/get_next_line_utils.c raytracer/rays.c \
-	event.c
+SRCS = main.c sphere.c parsing/float_parse.c parsing/parse.c \
+	get_next_line/get_next_line.c get_next_line/get_next_line_utils.c \
+	raytracer/rays.c event.c
 
 SRCS_OBJ = ${SRCS:.c=.o}
 
 LIBFT = ft_libft/libft.a
+MLX42_LIB = MLX42/build/libmlx42.a
+
+MLX_FLAGS = MLX42/build/libmlx42.a /goinfre/msaadaou/homebrew/lib/libglfw3.a \
+	-ldl -pthread -lm \
+	-framework Cocoa -framework OpenGL -framework IOKit -framework CoreFoundation
 
 
 all: ${NAME}
 
-${NAME}: ${SRCS_OBJ} ${LIBFT}
-	${CC} ${CFLAGS} $^ -lmlx -framework OpenGL -framework AppKit -o $@
+${NAME}: ${SRCS_OBJ} ${LIBFT} ${MLX42_LIB}
+	${CC} ${CFLAGS} $^ ${MLX_FLAGS} -o $@
 
 ${LIBFT}:
 	make -C ft_libft
+
+${MLX42_LIB}:
+	cmake -B MLX42/build -S MLX42
+	cmake --build MLX42/build
 
 %.o: %.c minirt.h
 	${CC} ${CFLAGS} -c $< -o $@
@@ -35,7 +44,8 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: clean
+.PHONY: clean fclean re all
+
 
 
 

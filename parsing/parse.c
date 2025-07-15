@@ -52,6 +52,26 @@ void	parse_ambient(char *line, t_ambient *ambient)
 	ambient->color.b = (float)atoi(line);
 }
 
+char	*ft_strdup_line(char *line)
+{
+	int	i;
+	int	j;
+	char *ptr;
+
+	i = 0;
+	while (line[i] && line[i] != '\n')
+		i++;
+	ptr = ft_calloc(1, i + 1);
+	if (!ptr)
+		return (NULL);
+	j = 0;
+	while (j < i)
+	{
+		ptr[j] = line[j];
+		j++;
+	}
+	return (ptr);
+}
 void	parse_light(char *line, t_light *light)
 {
 	if (*line == 'L')
@@ -92,6 +112,7 @@ int	check_texture_type(char *texture)
 }
 void	parse_plane(char *line, t_object *object)
 {
+	char *path;
 	object->type = PLANE;
 	if (line[0] == 'p' && line[1] == 'l')
 		line += 2;
@@ -106,30 +127,27 @@ void	parse_plane(char *line, t_object *object)
 	object->color.g = (float)atoi(line);
 	skip_exept(&line, ',');
 	object->color.b = (float)atoi(line);
+	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
+	if (object->texture == BUMP)
+    {
+        skip_space(&line);
+        path = ft_strdup_line(line);
+        object->bump_texture = mlx_load_png(path);
+        if (!object->bump_texture)
+        {
+            printf("Error: Failed to load bump texture for plane: %s\n", path);
+            object->texture = NONE;
+        }
+        free(path);
+    }
+	else
+    {
+        object->bump_texture = NULL;
+    }
 }
 
-char	*ft_strdup_line(char *line)
-{
-	int	i;
-	int	j;
-	char *ptr;
-
-	i = 0;
-	while (line[i] && line[i] != '\n')
-		i++;
-	ptr = ft_calloc(1, i + 1);
-	if (!ptr)
-		return (NULL);
-	j = 0;
-	while (j < i)
-	{
-		ptr[j] = line[j];
-		j++;
-	}
-	return (ptr);
-}
 
 void	parse_sphere(char *line, t_object *object, t_minirt *data)
 {
@@ -159,17 +177,18 @@ void	parse_sphere(char *line, t_object *object, t_minirt *data)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
+
 	if (object->texture == BUMP)
 	{
 		skip_space(&line);
 		path = ft_strdup_line(line);
-		printf("%sl\n", path);
-			// object->data.img_ptr = mlx_xpm_file_to_image(data->mlx, path,
-			// 		&object->data.width, &object->data.height);
-			// object->data.data = mlx_get_data_addr(object->data.img_ptr,
-			// 		&object->data.bpp, &object->data.size_line,
-					// &object->data.endian);
-	}
+		object->bump_texture = mlx_load_png(path);
+		if (!object->bump_texture)
+			printf("Failed to load: %s\n", path);
+		free(path);
+}
+	else
+		object->bump_texture = NULL;
 }
 
 void	parse_cylinder(char *line, t_object *object)
@@ -192,8 +211,25 @@ void	parse_cylinder(char *line, t_object *object)
 	object->color.g = (float)atoi(line);
 	skip_exept(&line, ',');
 	object->color.b = (float)atoi(line);
+	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
+	if (object->texture == BUMP)
+    {
+        skip_space(&line);
+        char *path = ft_strdup_line(line);
+        object->bump_texture = mlx_load_png(path);
+        if (!object->bump_texture)
+        {
+            printf("Error: Failed to load bump texture for plane: %s\n", path);
+            object->texture = NONE;
+        }
+        free(path);
+    }
+	else
+    {
+        object->bump_texture = NULL;
+    }
 }
 
 void	parse_cone(char *line, t_object *object)
@@ -216,8 +252,25 @@ void	parse_cone(char *line, t_object *object)
 	object->color.g = (float)atoi(line);
 	skip_exept(&line, ',');
 	object->color.b = (float)atoi(line);
+	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
+	if (object->texture == BUMP)
+    {
+        skip_space(&line);
+        char *path = ft_strdup_line(line);
+        object->bump_texture = mlx_load_png(path);
+        if (!object->bump_texture)
+        {
+            printf("Error: Failed to load bump texture for plane: %s\n", path);
+            object->texture = NONE;
+        }
+        free(path);
+    }
+	else
+    {
+        object->bump_texture = NULL;
+    }
 }
 
 void	parse_file(char *filename, t_minirt *data)

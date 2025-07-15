@@ -106,27 +106,36 @@ float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current)
 }
 float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current) 
 {
-    // Vector from ray origin to cylinder base
     t_vec3 oc = sub_vec(data->camera.origin, current->origin);
-    
-    // Cylinder axis (should be normalized)
     t_vec3 axis = normalize(current->normal);
     
-    // Project ray direction and oc onto plane perpendicular to axis
     float dot_rd_axis = dot(ray_direction, axis);
     float dot_oc_axis = dot(oc, axis);
     
-    // Components perpendicular to axis
     t_vec3 rd_perp = sub_vec(ray_direction, mul_vec(axis, dot_rd_axis));
     t_vec3 oc_perp = sub_vec(oc, mul_vec(axis, dot_oc_axis));
     
-    // Quadratic equation coefficients
     float a = dot(rd_perp, rd_perp);
     float b = 2.0f * dot(oc_perp, rd_perp);
     float radius = current->diameter / 2.0f;
     float c = dot(oc_perp, oc_perp) - radius * radius;
     
-    // Check if we have a valid intersection
+    // Fix: Check for degenerate case (ray parallel to cylinder axis)
+    if (a < 1e-6f) {
+        // Ray is parallel to cylinder axis
+        if (c > 0) return -1.0f; // Ray misses cylinder
+        // Ray is inside cylinder, check height bounds only
+        float t = -dot_oc_axis / dot_rd_axis;
+        if (t > 0.001f) {
+            t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t));
+            t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
+            float height_projection = dot(point_to_base, axis);
+            if (height_projection >= 0.0f && height_projection <= current->height)
+                return t;
+        }
+        return -1.0f;
+    }
+    
     float discriminant = b * b - 4 * a * c;
     if (discriminant < 0)
         return -1.0f;
@@ -135,76 +144,141 @@ float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current
     float t1 = (-b - sqrt_discriminant) / (2.0f * a);
     float t2 = (-b + sqrt_discriminant) / (2.0f * a);
     
-    // Choose the closest positive intersection
+    // Fix: Check both intersections properly
     float t = -1.0f;
-    if (t1 > 0.001f)
-        t = t1;
-    else if (t2 > 0.001f)
-        t = t2;
     
-    if (t > 0.001f)
-    {
-        // Calculate intersection point
-        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t));
-        
-        // Check if intersection is within cylinder height
+    // Check t1 first (closer intersection)
+    if (t1 > 0.001f) {
+        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
         t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
         float height_projection = dot(point_to_base, axis);
-        
         if (height_projection >= 0.0f && height_projection <= current->height)
-            return t;
+            return t1;
+    }
+    
+    // Check t2 (farther intersection)
+    if (t2 > 0.001f) {
+        t_vec3 intersection_point = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
+        t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
+        float height_projection = dot(point_to_base, axis);
+        if (height_projection >= 0.0f && height_projection <= current->height)
+            return t2;
     }
     
     return -1.0f;
 }
 
-float intersect_cone_shadow(t_vec3 *light, t_vec3 ray_direction, t_object *current)
+float intersect_cone_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current)
 {
-	t_vec3 co = sub_vec(*light, current->origin);
-	t_vec3 axis = normalize(current->normal);
-	float radius = current->diameter / 2.0f;
-	float height = current->height;
-	float k = radius / height;
-	float k_s = k * k;
-	t_vec3 v = ray_direction;
-
-	float a = dot(v, v) - (1 + k_s) * dot(v, axis) * dot(v, axis);
-	float b = 2 * (dot(v, co) - (1 + k_s) * dot(v, axis) * dot(co, axis));
-	float c = dot(co, co) - (1 + k_s) * dot(co, axis) * dot(co, axis);
-	
-	float t = check_descriminant(a, b, c);
-	if (t > 0.001f)
-	{
-		t_vec3 p = add_vec(*light, mul_vec(ray_direction, t));
-		float h = dot(sub_vec(p, current->origin), axis);
-		if (h >= 0 && h <= height)
-			return t;
-	}
-	return -1.0f;
+    t_vec3 oc = sub_vec(ray_origin, current->origin);
+    t_vec3 axis = normalize(current->normal);
+    float radius = current->diameter / 2.0f;
+    float height = current->height;
+    
+    // Cone with apex at (origin + height * axis)
+    t_vec3 apex = add_vec(current->origin, mul_vec(axis, height));
+    t_vec3 oa = sub_vec(ray_origin, apex);
+    
+    // Cone angle calculations
+    float cos_squared = (height * height) / (radius * radius + height * height);
+    
+    float vdot_axis = dot(ray_direction, axis);
+    float oa_dot_axis = dot(oa, axis);
+    
+    float a = dot(ray_direction, ray_direction) - cos_squared * vdot_axis * vdot_axis;
+    float b = 2.0f * (dot(ray_direction, oa) - cos_squared * vdot_axis * oa_dot_axis);
+    float c = dot(oa, oa) - cos_squared * oa_dot_axis * oa_dot_axis;
+    
+    // Handle degenerate case
+    if (fabs(a) < 1e-6f) {
+        if (fabs(b) < 1e-6f) return -1.0f;
+        float t = -c / b;
+        if (t > 0.001f) {
+            t_vec3 p = add_vec(ray_origin, mul_vec(ray_direction, t));
+            t_vec3 ap = sub_vec(p, apex);
+            float proj = dot(ap, mul_vec(axis, -1));
+            if (proj >= 0 && proj <= height)
+                return t;
+        }
+        return -1.0f;
+    }
+    
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    
+    float sqrt_discriminant = sqrt(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2.0f * a);
+    float t2 = (-b + sqrt_discriminant) / (2.0f * a);
+    
+    // Check both intersections
+    if (t1 > 0.001f) {
+        t_vec3 p = add_vec(ray_origin, mul_vec(ray_direction, t1));
+        t_vec3 ap = sub_vec(p, apex);
+        float proj = dot(ap, mul_vec(axis, -1));
+        if (proj >= 0 && proj <= height)
+            return t1;
+    }
+    
+    if (t2 > 0.001f) {
+        t_vec3 p = add_vec(ray_origin, mul_vec(ray_direction, t2));
+        t_vec3 ap = sub_vec(p, apex);
+        float proj = dot(ap, mul_vec(axis, -1));
+        if (proj >= 0 && proj <= height)
+            return t2;
+    }
+    
+    return -1.0f;
 }
 float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current)
 {
-	t_vec3 co = sub_vec(data->camera.origin, current->origin);
-	t_vec3 axis = normalize(current->normal);
-	float radius = current->diameter / 2.0f;
-	float height = current->height;
-	float k = radius / height;
-	float k_s = k * k;
-	t_vec3 v = ray_direction;
-
-	float a = dot(v, v) - (1 + k_s) * dot(v, axis) * dot(v, axis);
-	float b = 2 * (dot(v, co) - (1 + k_s) * dot(v, axis) * dot(co, axis));
-	float c = dot(co, co) - (1 + k_s) * dot(co, axis) * dot(co, axis);
-	
-	float t = check_descriminant(a, b, c);
-	if (t > 0.001f)
-	{
-		t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t));
-		float h = dot(sub_vec(p, current->origin), axis);
-		if (h >= 0 && h <= height)
-			return t;
-	}
-	return -1.0f;
+    t_vec3 oc = sub_vec(data->camera.origin, current->origin);
+    t_vec3 axis = normalize(current->normal);
+    float radius = current->diameter / 2.0f;
+    float height = current->height;
+    
+    // Cone with apex at the TOP (origin + height * axis)
+    t_vec3 apex = add_vec(current->origin, mul_vec(axis, height));
+    t_vec3 oa = sub_vec(data->camera.origin, apex);
+    
+    // Use proper cone angle calculation
+    float tan_squared = (radius * radius) / (height * height);
+    
+    float vdot_axis = dot(ray_direction, axis);
+    float oa_dot_axis = dot(oa, axis);
+    
+    // Corrected quadratic equation for cone
+    float a = dot(ray_direction, ray_direction) - (1 + tan_squared) * vdot_axis * vdot_axis;
+    float b = 2.0f * (dot(ray_direction, oa) - (1 + tan_squared) * vdot_axis * oa_dot_axis);
+    float c = dot(oa, oa) - (1 + tan_squared) * oa_dot_axis * oa_dot_axis;
+    
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+        return -1.0f;
+    
+    float sqrt_discriminant = sqrt(discriminant);
+    float t1 = (-b - sqrt_discriminant) / (2.0f * a);
+    float t2 = (-b + sqrt_discriminant) / (2.0f * a);
+    
+    // Check t1 first
+    if (t1 > 0.001f) {
+        t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t1));
+        t_vec3 ap = sub_vec(p, apex);
+        float proj = dot(ap, axis);  // Project along axis from apex
+        if (proj >= -height && proj <= 0)  // Apex is at top, base below
+            return t1;
+    }
+    
+    // Check t2
+    if (t2 > 0.001f) {
+        t_vec3 p = add_vec(data->camera.origin, mul_vec(ray_direction, t2));
+        t_vec3 ap = sub_vec(p, apex);
+        float proj = dot(ap, axis);  // Project along axis from apex
+        if (proj >= -height && proj <= 0)  // Apex is at top, base below
+            return t2;
+    }
+    
+    return -1.0f;
 }
 
 
@@ -263,27 +337,34 @@ t_point find_closest_inter(t_minirt *data, t_vec3 ray_direction)
 // }
 float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current) 
 {
-    // Vector from ray origin to cylinder base
     t_vec3 oc = sub_vec(ray_origin, current->origin);
-    
-    // Cylinder axis (should be normalized)
     t_vec3 axis = normalize(current->normal);
     
-    // Project ray direction and oc onto plane perpendicular to axis
     float dot_rd_axis = dot(ray_direction, axis);
     float dot_oc_axis = dot(oc, axis);
     
-    // Components perpendicular to axis
     t_vec3 rd_perp = sub_vec(ray_direction, mul_vec(axis, dot_rd_axis));
     t_vec3 oc_perp = sub_vec(oc, mul_vec(axis, dot_oc_axis));
     
-    // Quadratic equation coefficients
     float a = dot(rd_perp, rd_perp);
     float b = 2.0f * dot(oc_perp, rd_perp);
     float radius = current->diameter / 2.0f;
     float c = dot(oc_perp, oc_perp) - radius * radius;
     
-    // Check if we have a valid intersection
+    // Fix: Same degenerate case handling
+    if (a < 1e-6f) {
+        if (c > 0) return -1.0f;
+        float t = -dot_oc_axis / dot_rd_axis;
+        if (t > 0.001f) {
+            t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t));
+            t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
+            float height_projection = dot(point_to_base, axis);
+            if (height_projection >= 0.0f && height_projection <= current->height)
+                return t;
+        }
+        return -1.0f;
+    }
+    
     float discriminant = b * b - 4 * a * c;
     if (discriminant < 0)
         return -1.0f;
@@ -292,24 +373,21 @@ float intersect_cylinder_shadow(t_vec3 ray_origin, t_vec3 ray_direction, t_objec
     float t1 = (-b - sqrt_discriminant) / (2.0f * a);
     float t2 = (-b + sqrt_discriminant) / (2.0f * a);
     
-    // Choose the closest positive intersection
-    float t = -1.0f;
-    if (t1 > 0.001f)
-        t = t1;
-    else if (t2 > 0.001f)
-        t = t2;
-    
-    if (t > 0.001f)
-    {
-        // Calculate intersection point
-        t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t));
-        
-        // Check if intersection is within cylinder height
+    // Check both intersections
+    if (t1 > 0.001f) {
+        t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t1));
         t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
         float height_projection = dot(point_to_base, axis);
-        
         if (height_projection >= 0.0f && height_projection <= current->height)
-            return t;
+            return t1;
+    }
+    
+    if (t2 > 0.001f) {
+        t_vec3 intersection_point = add_vec(ray_origin, mul_vec(ray_direction, t2));
+        t_vec3 point_to_base = sub_vec(intersection_point, current->origin);
+        float height_projection = dot(point_to_base, axis);
+        if (height_projection >= 0.0f && height_projection <= current->height)
+            return t2;
     }
     
     return -1.0f;
@@ -363,7 +441,7 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
 				continue ;
 			}
 			else if (obj->type == CONE)
-				dstance = intersect_cone_shadow(&origin_light, light_dir_n, obj);
+				dstance = intersect_cone_shadow(point.origin, light_dir_n, obj);
 			
 			if (dstance > 0.0f && dstance < max_dstance)
 				return (1);
@@ -371,6 +449,98 @@ int is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n, t_vec3 origin_l
 		obj = obj->next;
 	}
 	return (0);
+}
+t_color get_texture_color(t_point *point, t_object *obj)
+{
+    if (!obj->bump_texture)
+        return obj->color;  // Return base color if no texture
+    
+    // Calculate texture coordinates (same as bump mapping)
+    float u, v;
+    
+    if (obj->type == SPHERE) 
+    {
+        t_vec3 hit = normalize(sub_vec(point->origin, obj->origin));
+        u = 0.5 + atan2(hit.z, hit.x) / (2 * M_PI);
+        v = 0.5 - asin(hit.y) / M_PI;
+        u = fmax(0.0f, fmin(1.0f, u));
+        v = fmax(0.0f, fmin(1.0f, v));
+    }
+    else if (obj->type == PLANE) 
+    {
+        // FIXED: Use same orientation logic as handle_bump
+        t_vec3 plane_normal = normalize(obj->normal);
+        
+        if (fabs(plane_normal.y) > 0.9f) 
+        {
+            // Horizontal plane (floor/ceiling) - use X and Z
+            u = fmod(point->origin.x * 0.5, 1.0);
+            v = fmod(point->origin.z * 0.5, 1.0);
+        }
+        else if (fabs(plane_normal.x) > 0.9f) 
+        {
+            // Vertical plane facing X - use Y and Z  
+            u = fmod(point->origin.z * 0.5, 1.0);
+            v = fmod(point->origin.y * 0.5, 1.0);
+        }
+        else 
+        {
+            // Vertical plane facing Z - use X and Y
+            u = fmod(point->origin.x * 0.5, 1.0);
+            v = fmod(point->origin.y * 0.5, 1.0);
+        }
+        
+        // Handle negative coordinates
+        if (u < 0) u += 1.0;
+        if (v < 0) v += 1.0;
+    }
+    else if (obj->type == CYLINDER)
+	{
+		t_vec3 local_hit = sub_vec(point->origin, obj->origin);
+		float theta = atan2(local_hit.z, local_hit.x);
+		u = (theta + M_PI) / (2 * M_PI);
+		v = local_hit.y * 0.1;
+		v = fmod(v, 1.0);
+		if (v < 0) v += 1.0;
+	}
+	else if (obj->type == CONE)
+	{
+		// Use SAME logic as handle_bump
+		t_vec3 axis = normalize(obj->normal);
+		t_vec3 apex = add_vec(obj->origin, mul_vec(axis, obj->height));
+		t_vec3 local_hit = sub_vec(point->origin, apex);
+		
+		float theta = atan2(local_hit.z, local_hit.x);
+		u = (theta + M_PI) / (2 * M_PI);
+		
+		float dist_from_apex = vec_length(local_hit);
+		v = dist_from_apex / (obj->height * 1.41421f);
+		
+		u = fmax(0.0f, fmin(1.0f, u));
+		v = fmax(0.0f, fmin(1.0f, v));
+	}
+    else
+    {
+        return obj->color;
+    }
+    
+    // Sample texture for COLOR (not just bump)
+    int tex_x = (int)(u * obj->bump_texture->width);
+    int tex_y = (int)(v * obj->bump_texture->height);
+    
+    tex_x = fmax(0, fmin(tex_x, obj->bump_texture->width - 1));
+    tex_y = fmax(0, fmin(tex_y, obj->bump_texture->height - 1));
+    
+    uint8_t *pixels = obj->bump_texture->pixels;
+    int index = (tex_y * obj->bump_texture->width + tex_x) * 4;
+    
+    // Return the actual texture colors
+    t_color texture_color;
+    texture_color.r = pixels[index];         // Red channel
+    texture_color.g = pixels[index + 1];     // Green channel  
+    texture_color.b = pixels[index + 2];     // Blue channel
+    
+    return texture_color;
 }
 
 t_vec3 reflect(t_vec3 incident, t_vec3 normal)
@@ -385,6 +555,7 @@ void init_l_s(t_l_s *data)
 	data->color.r = 0;
 	data->color.g = 0;
 	data->color.b = 0;
+	data->lfar9 = 1.0f;
 }
 
 void	color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c_light)
@@ -394,11 +565,11 @@ void	color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c
 	s_l_data->color.b += obj->b * c_light->b / 255.0f * s_l_data->lfar9 * s_l_data->light->ratio;
 }
 
-void	color_handle_ambient(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c_light)
+void color_handle_ambient(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c_light)
 {
-	s_l_data->color.r += obj->r * c_light->r / 255.0f * s_l_data->lfar9 * data->ambient.ratio;
-	s_l_data->color.g += obj->g * c_light->g / 255.0f * s_l_data->lfar9 * data->ambient.ratio;
-	s_l_data->color.b += obj->b * c_light->b / 255.0f * s_l_data->lfar9 * data->ambient.ratio;
+    s_l_data->color.r += obj->r * c_light->r / 255.0f * data->ambient.ratio;
+    s_l_data->color.g += obj->g * c_light->g / 255.0f * data->ambient.ratio;
+    s_l_data->color.b += obj->b * c_light->b / 255.0f * data->ambient.ratio;
 }
 
 void	clr_reflection(t_l_s *s_l_data)
@@ -410,35 +581,45 @@ void	clr_reflection(t_l_s *s_l_data)
 
 int handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
 {
-	t_l_s	s_l_data;
+    t_l_s s_l_data;
 
-	init_l_s(&s_l_data);
-	s_l_data.light = data->light;
-	while (s_l_data.light)
-	{
-		s_l_data.light_dir_n = normalize(sub_vec(s_l_data.light->origin, point->origin));
-		if (!is_shadow(data, *point, s_l_data.light_dir_n, s_l_data.light->origin))
-		{
-			s_l_data.lfar9 = fmax(0.0f, dot(normal, s_l_data.light_dir_n));
-			s_l_data.reflect_dir = reflect(mul_vec(s_l_data.light_dir_n, -1), normal);
-			s_l_data.view_dir = normalize(sub_vec(data->camera.origin, point->origin));
-			s_l_data.spec = powf(fmax(dot(s_l_data.view_dir, s_l_data.reflect_dir), 0.0f), s_l_data.shininess);
-			if (point->obj->texture == CHECKER)
-				color_handle_help(data, &s_l_data, &point->color, &s_l_data.light->color);
-			else
-				color_handle_help(data, &s_l_data, &point->obj->color, &s_l_data.light->color);
-			clr_reflection(&s_l_data); 
-		}
-		s_l_data.light = s_l_data.light->next;
-	}
-	if (point->obj->texture == CHECKER)
-		color_handle_ambient(data, &s_l_data, &point->color, &data->ambient.color);
-	else
-		color_handle_ambient(data, &s_l_data, &point->obj->color, &data->ambient.color);
-	s_l_data.color.r = fmin(s_l_data.color.r, 255.0f);
-	s_l_data.color.g = fmin(s_l_data.color.g, 255.0f);
-	s_l_data.color.b = fmin(s_l_data.color.b, 255.0f);
-	return ((int)s_l_data.color.r << 16) | ((int)s_l_data.color.g << 8) | (int)s_l_data.color.b;
+    init_l_s(&s_l_data);
+    s_l_data.light = data->light;
+    
+    // Get the texture color for this point
+    t_color surface_color;
+    if (point->obj->texture == CHECKER)
+        surface_color = point->color;  // Use checker color
+    else if (point->obj->texture == BUMP)
+        surface_color = get_texture_color(point, point->obj);  // Use texture color
+    else
+        surface_color = point->obj->color;  // Use base object color
+    
+    while (s_l_data.light)
+    {
+        s_l_data.light_dir_n = normalize(sub_vec(s_l_data.light->origin, point->origin));
+        if (!is_shadow(data, *point, s_l_data.light_dir_n, s_l_data.light->origin))
+        {
+            s_l_data.lfar9 = fmax(0.0f, dot(normal, s_l_data.light_dir_n));
+            s_l_data.reflect_dir = reflect(mul_vec(s_l_data.light_dir_n, -1), normal);
+            s_l_data.view_dir = normalize(sub_vec(data->camera.origin, point->origin));
+            s_l_data.spec = powf(fmax(dot(s_l_data.view_dir, s_l_data.reflect_dir), 0.0f), s_l_data.shininess);
+            
+            // Use the surface color we calculated above
+            color_handle_help(data, &s_l_data, &surface_color, &s_l_data.light->color);
+            clr_reflection(&s_l_data); 
+        }
+        s_l_data.light = s_l_data.light->next;
+    }
+    
+    // Apply ambient lighting with surface color
+    color_handle_ambient(data, &s_l_data, &surface_color, &data->ambient.color);
+    
+    s_l_data.color.r = fmin(s_l_data.color.r, 255.0f);
+    s_l_data.color.g = fmin(s_l_data.color.g, 255.0f);
+    s_l_data.color.b = fmin(s_l_data.color.b, 255.0f);
+    uint32_t a = 255;
+    return ((int)s_l_data.color.r << 24) | ((int)s_l_data.color.g << 16) | ((int)s_l_data.color.b << 8) | a;
 }
 
 void handle_checker(t_point *point, t_object *obj)
@@ -522,6 +703,127 @@ t_vec3 get_cylinder_normal(t_vec3 intersection_point, t_object *cylinder)
     
     return normal;
 }
+t_vec3 handle_bump(t_point *point, t_object *obj, t_vec3 original_normal)
+{
+    if (!obj->bump_texture)
+        return original_normal;
+    
+    // Calculate texture coordinates based on object type
+    float u, v;
+    
+    if (obj->type == SPHERE) 
+    {
+        t_vec3 hit = normalize(sub_vec(point->origin, obj->origin));
+        u = 0.5 + atan2(hit.z, hit.x) / (2 * M_PI);
+		v = 0.5 - asin(hit.y) / M_PI;
+		// Clamp to [0,1] instead of fmod
+		u = fmax(0.0f, fmin(1.0f, u));
+		v = fmax(0.0f, fmin(1.0f, v));
+    }
+    else if (obj->type == PLANE) 
+    {
+		// Determine plane orientation based on normal
+		t_vec3 plane_normal = normalize(obj->normal);
+		
+		if (fabs(plane_normal.y) > 0.9f) 
+		{
+			// Horizontal plane (floor/ceiling) - use X and Z
+			u = fmod(point->origin.x * 0.5, 1.0);
+			v = fmod(point->origin.z * 0.5, 1.0);
+		}
+		else if (fabs(plane_normal.x) > 0.9f) 
+		{
+			// Vertical plane facing X - use Y and Z  
+			u = fmod(point->origin.z * 0.5, 1.0);
+			v = fmod(point->origin.y * 0.5, 1.0);
+		}
+		else 
+		{
+			// Vertical plane facing Z - use X and Y
+			u = fmod(point->origin.x * 0.5, 1.0);
+			v = fmod(point->origin.y * 0.5, 1.0);
+		}
+		
+		// Handle negative coordinates
+		if (u < 0) u += 1.0;
+		if (v < 0) v += 1.0;
+    }
+    else if (obj->type == CYLINDER)
+    {
+        t_vec3 local_hit = sub_vec(point->origin, obj->origin);
+        float theta = atan2(local_hit.z, local_hit.x);
+        u = (theta + M_PI) / (2 * M_PI);
+        v = local_hit.y * 0.1;  // Scale factor
+        v = fmod(v, 1.0);
+        if (v < 0) v += 1.0;
+    }
+    else if (obj->type == CONE)
+	{
+		t_vec3 axis = normalize(obj->normal);
+		t_vec3 apex = add_vec(obj->origin, mul_vec(axis, obj->height));
+		t_vec3 local_hit = sub_vec(point->origin, apex);
+		
+		// Cylindrical coordinates from apex
+		float theta = atan2(local_hit.z, local_hit.x);
+		u = (theta + M_PI) / (2 * M_PI);
+		
+		// V coordinate based on distance from apex
+		float dist_from_apex = vec_length(local_hit);
+		v = dist_from_apex / (obj->height * 1.41421f);  // Normalize by max distance
+		
+		// Clamp to [0,1]
+		u = fmax(0.0f, fmin(1.0f, u));
+		v = fmax(0.0f, fmin(1.0f, v));
+	}
+    else
+    {
+        return original_normal;
+    }
+    
+    // Sample the bump texture
+    int tex_x = (int)(u * obj->bump_texture->width);
+    int tex_y = (int)(v * obj->bump_texture->height);
+    
+    // Now clamp to valid bounds
+    tex_x = fmax(0, fmin(tex_x, obj->bump_texture->width - 1));
+    tex_y = fmax(0, fmin(tex_y, obj->bump_texture->height - 1));
+    
+    uint8_t *pixels = obj->bump_texture->pixels;
+    int index = (tex_y * obj->bump_texture->width + tex_x) * 4;
+    
+    // Get RGB values and convert to normal perturbations
+    float r = (pixels[index] / 255.0f - 0.5f) * 2.0f;     // -1 to 1
+    float g = (pixels[index + 1] / 255.0f - 0.5f) * 2.0f; // -1 to 1  
+    float b = (pixels[index + 2] / 255.0f - 0.5f) * 2.0f; // -1 to 1
+    
+    // Calculate tangent space vectors
+    t_vec3 tangent, bitangent;
+    
+    // Choose tangent based on surface normal
+    if (fabs(original_normal.y) < 0.9f)
+        tangent = normalize(cross(original_normal, (t_vec3){0, 1, 0}));
+    else
+        tangent = normalize(cross(original_normal, (t_vec3){1, 0, 0}));
+    
+    bitangent = normalize(cross(original_normal, tangent));
+    
+    // Apply color-based bump perturbations
+    float bump_strength = 0.03f;  // Adjust strength (0.05-0.3)
+    
+    t_vec3 bump_normal = add_vec(
+        add_vec(
+            mul_vec(tangent, r * bump_strength),
+            mul_vec(bitangent, g * bump_strength)
+        ),
+        mul_vec(original_normal, 1.0f + b * bump_strength * 0.5f)
+    );
+    
+    return normalize(bump_normal);
+}
+uint32_t get_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+    return (r << 24) | (g << 16) | (b << 8) | a;
+}
 void rays_setup(t_minirt *data)
 {
     int i, j;
@@ -547,24 +849,32 @@ void rays_setup(t_minirt *data)
                 else if (point.obj->type == PLANE)
                     normal = point.obj->normal;
                 else if (point.obj->type == CYLINDER)
-                {
-                normal = get_cylinder_normal(point.origin, point.obj);}
-                else if (point.obj->type == CONE)
-                {
-                    t_vec3 axis = normalize(point.obj->normal);
-                    t_vec3 apex_to_point = sub_vec(point.origin, point.obj->origin);
-                    float h = dot(apex_to_point, axis);
-                    t_vec3 projected = sub_vec(apex_to_point, mul_vec(axis, h));
-                    float radius = point.obj->diameter / 2.0f;
-                    float height = point.obj->height;
-                    float k = radius / height;
-                    normal = normalize(sub_vec(apex_to_point, mul_vec(axis, k * k * h)));
-                }
-                if (point.obj->texture == CHECKER)
-                    handle_checker(&point, point.obj);
+                	normal = get_cylinder_normal(point.origin, point.obj);
+				else if (point.obj->type == CONE)
+				{
+					// Simple radial normal calculation (like cylinder, but with slight tilt)
+					t_vec3 axis = normalize(point.obj->normal);
+					t_vec3 base_to_point = sub_vec(point.origin, point.obj->origin);
+					
+					// Project to find point on axis
+					float height_proj = dot(base_to_point, axis);
+					t_vec3 axis_point = add_vec(point.obj->origin, mul_vec(axis, height_proj));
+					
+					// Simple outward normal
+					normal = normalize(sub_vec(point.origin, axis_point));
+				}
+            	if (point.obj->texture == CHECKER)
+                	handle_checker(&point, point.obj);
+				else if (point.obj->texture == BUMP)
+					normal = handle_bump(&point, point.obj, normal);
                 color = handle_light_shadow(data, &point, normal);
                 mlx_put_pixel(data->img, i, j, color);
             }
+			else
+			{
+				color = get_rgba(0, 0, 0, 255);
+				mlx_put_pixel(data->img, i, j, color);
+			}
             j++;
         }
         i++;

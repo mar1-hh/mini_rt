@@ -28,4 +28,4 @@ sp  -2.0,3.0,-4.0                           0.8                 255,255,255  bum
 sp  2.0,3.0,3.0                             0.8                 255,255,255  bump TEST/mur-de-pierre-texture.png
 sp  -2.0,3.0,3.0                            0.8                 255,255,255  bump TEST/mur-de-pierre-texture.png
 
-sp  0.0,-0.5,-1.0                           2.0                 255,255,255  bump TEST/poudre-seche-multicolore-sur-la-table.png
+sp  0.0,0.5,-1.0                           2.0                 255,255,255  bump TEST/2k_earth_daymap.png

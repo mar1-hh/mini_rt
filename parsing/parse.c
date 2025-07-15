@@ -101,6 +101,7 @@ void	parse_camera(char *line, t_camera *camera)
 	skip_space(&line);
 	camera->fov = ft_atof(line);
 }
+
 int	check_texture_type(char *texture)
 {
 	if (strncmp(texture, "checker", 7) == 0)
@@ -110,9 +111,29 @@ int	check_texture_type(char *texture)
 	else
 		return (NONE);
 }
+
+void	handling_pump_tex(char **line, t_object *object)
+{
+	char	*path;
+
+	if (object->texture == BUMP)
+	{
+		skip_space(line);
+		path = ft_strdup_line(*line);
+		object->bump_texture = mlx_load_png(path);
+		if (!object->bump_texture)
+		{
+			printf("Error: Failed to load bump texture for plane: %s\n", path);
+			object->texture = NONE;
+		}
+		free(path);
+	}
+	else
+		object->bump_texture = NULL;
+}
+
 void	parse_plane(char *line, t_object *object)
 {
-	char *path;
 	object->type = PLANE;
 	if (line[0] == 'p' && line[1] == 'l')
 		line += 2;
@@ -130,35 +151,17 @@ void	parse_plane(char *line, t_object *object)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-	if (object->texture == BUMP)
-    {
-        skip_space(&line);
-        path = ft_strdup_line(line);
-        object->bump_texture = mlx_load_png(path);
-        if (!object->bump_texture)
-        {
-            printf("Error: Failed to load bump texture for plane: %s\n", path);
-            object->texture = NONE;
-        }
-        free(path);
-    }
-	else
-    {
-        object->bump_texture = NULL;
-    }
+	handling_pump_tex(&line, object);
 }
 
 
 void	parse_sphere(char *line, t_object *object, t_minirt *data)
 {
-	char	*path;
-
 	(void)data;
 	object->type = SPHERE;
 	if (line[0] == 's' && line[1] == 'p')
 		line += 2;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	object->origin = parse_vec3(&line);
 	while (*line && !ft_isspace(*line))
 		line++;
@@ -177,18 +180,7 @@ void	parse_sphere(char *line, t_object *object, t_minirt *data)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-
-	if (object->texture == BUMP)
-	{
-		skip_space(&line);
-		path = ft_strdup_line(line);
-		object->bump_texture = mlx_load_png(path);
-		if (!object->bump_texture)
-			printf("Failed to load: %s\n", path);
-		free(path);
-}
-	else
-		object->bump_texture = NULL;
+	handling_pump_tex(&line, object);
 }
 
 void	parse_cylinder(char *line, t_object *object)
@@ -214,22 +206,7 @@ void	parse_cylinder(char *line, t_object *object)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-	if (object->texture == BUMP)
-    {
-        skip_space(&line);
-        char *path = ft_strdup_line(line);
-        object->bump_texture = mlx_load_png(path);
-        if (!object->bump_texture)
-        {
-            printf("Error: Failed to load bump texture for plane: %s\n", path);
-            object->texture = NONE;
-        }
-        free(path);
-    }
-	else
-    {
-        object->bump_texture = NULL;
-    }
+	handling_pump_tex(&line, object);
 }
 
 void	parse_cone(char *line, t_object *object)
@@ -255,22 +232,7 @@ void	parse_cone(char *line, t_object *object)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-	if (object->texture == BUMP)
-    {
-        skip_space(&line);
-        char *path = ft_strdup_line(line);
-        object->bump_texture = mlx_load_png(path);
-        if (!object->bump_texture)
-        {
-            printf("Error: Failed to load bump texture for plane: %s\n", path);
-            object->texture = NONE;
-        }
-        free(path);
-    }
-	else
-    {
-        object->bump_texture = NULL;
-    }
+	handling_pump_tex(&line, object);
 }
 
 void	parse_file(char *filename, t_minirt *data)

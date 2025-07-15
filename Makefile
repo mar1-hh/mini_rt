@@ -15,7 +15,7 @@ LIBFT = ft_libft/libft.a
 MLX42_LIB = MLX42/build/libmlx42.a
 
 # Get Homebrew path for GLFW
-GLFW_PATH = /goinfre/msaadaou/homebrew/opt/glfw
+GLFW_PATH = /Users/msaadaou/.brew/opt/glfw
 
 MLX_FLAGS = ${MLX42_LIB} -L${GLFW_PATH}/lib -lglfw \
 	-ldl -pthread -lm \

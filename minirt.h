@@ -16,6 +16,7 @@
 # define WIDTH 1000
 # define HEIGHT 1000
 
+
 typedef enum    e_types
 {
 	AMBIENT,
@@ -132,6 +133,22 @@ typedef struct s_minirt
 	int		endian;
 }   t_minirt;
 
+typedef struct s_cone_vars
+{
+    t_vec3	oc;
+    t_vec3	axis;
+    float	radius;
+    float	height;
+    t_vec3	apex;
+    t_vec3	oa;
+    float	cos_squared;
+    float	vdot_axis;
+    float	oa_dot_axis;
+    float	a;
+    float	b;
+    float	c;
+}	t_cone_vars;
+
 typedef struct s_l_s
 {
 	t_light *light;
@@ -144,13 +161,166 @@ typedef struct s_l_s
     t_vec3  reflect_dir;
 	t_vec3  view_dir;
 }   t_l_s;
+// Vector operations
+float vec_length(t_vec3 v);
+t_vec3 normalize(t_vec3 v);
+t_vec3 sub_vec(t_vec3 a, t_vec3 b);
+t_vec3 add_vec(t_vec3 a, t_vec3 b);
+t_vec3 mul_vec(t_vec3 a, float b);
+t_vec3 cross(t_vec3 a, t_vec3 b);
+float dot(t_vec3 a, t_vec3 b);
+float distance(t_vec3 a, t_vec3 b);
+t_vec3 create_vec(int a, int b, int c);
+// Normal calculation functions
+t_vec3 get_cylinder_normal(t_vec3 intersection_point, t_object *cylinder);
+t_vec3 get_cone_normal(t_vec3 intersection_point, t_object *cone);
+t_vec3 calculate_surface_normal(t_point *point);
+t_vec3 apply_surface_effects(t_point *point, t_vec3 normal);
+// Intersection functions - Main interface
+float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current);
+float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current);
+float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current);
+float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current);
+//rays
+t_vec3	generate_rays(t_minirt *data, int x, int y);
+t_point	find_closest_inter(t_minirt *data, t_vec3 ray_direction);
+int	handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal);
+uint32_t get_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
-void	draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
-void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
-int	is_valide_float(char *str);
-double	ft_atof(char *str);
-void parse_file(char *filename, t_minirt *data);
+// Intersection functions - Unified (for shadows and main)
+float intersect_sphere_unified(t_vec3 ray_origin, t_vec3 ray_direction, t_object *sphere);
+float intersect_cylinder_unified(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current);
+float intersect_cone_unified(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current);
+
+// Cylinder intersection helpers
+float calculate_cylinder_intersection(float a, float b, float c, t_vec3 ray_origin, 
+                                    t_vec3 ray_direction, t_object *current, t_vec3 axis);
+float handle_cylinder_degenerate(float c, t_vec3 ray_origin, t_vec3 ray_direction, 
+                                t_object *current, t_vec3 axis);
+float validate_cylinder_height(float t, t_vec3 ray_origin, t_vec3 ray_direction, 
+                              t_object *current, t_vec3 axis);
+float check_cylinder_heights(float t1, float t2, t_vec3 ray_origin, t_vec3 ray_direction, 
+                            t_object *current, t_vec3 axis);
+
+// Cone intersection helpers
+void setup_cone_vars(t_cone_vars *vars, t_vec3 ray_origin, t_object *current);
+float calculate_cone_coefficients(t_cone_vars *vars, t_vec3 ray_origin, t_vec3 ray_direction);
+float calculate_discriminant(t_cone_vars *vars, t_vec3 ray_direction);
+int validate_cone_intersection(float t, t_vec3 ray_origin, t_vec3 ray_direction, t_cone_vars *vars);
+
+// Texture coordinate calculation
+void calculate_sphere_coords(t_point *point, t_object *obj, float *u, float *v);
+void calculate_plane_coords(t_point *point, t_object *obj, float *u, float *v);
+void calculate_cylinder_coords(t_point *point, t_object *obj, float *u, float *v);
+void calculate_cone_coords(t_point *point, t_object *obj, float *u, float *v);
+void calculate_texture_coords(t_point *point, t_object *obj, float *u, float *v);
+
+// Texture sampling
+t_color sample_texture(mlx_texture_t *texture, float u, float v);
+t_color get_texture_color(t_point *point, t_object *obj);
+void handle_checker(t_point *point, t_object *obj);
+t_vec3 handle_bump(t_point *point, t_object *obj, t_vec3 original_normal);
+void	calculate_sphere_coords(t_point *point, t_object *obj, float *u, float *v);
+void	calculate_plane_coords(t_point *point, t_object *obj, float *u, float *v);
+
+// Utility functions
+float check_descriminant(float a, float b, float c);
+t_vec3 calculate_ray_direction(t_minirt *data, float screen_x, float screen_y);
+t_point initialize_point(void);
+
+// Rendering functions
+void render_pixel(t_minirt *data, int x, int y);
+t_vec3 calculate_surface_normal(t_point *point);
+t_vec3 apply_surface_effects(t_point *point, t_vec3 normal);
+t_color get_surface_color(t_point *point);
+void draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
+void my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
+
+// light
+void process_all_lights(t_minirt *data, t_l_s *s_l_data, t_point *point, 
+	t_vec3 normal, t_color surface_color);
+void color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c_light);
+void clr_reflection(t_l_s *s_l_data);
+t_vec3 reflect(t_vec3 incident, t_vec3 normal);
+int	is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n,
+	t_vec3 origin_light);
+	float get_shadow_distance(t_minirt *data, t_point point, t_vec3 light_dir_n, t_object *obj);
+// Main functions
 void rays_setup(t_minirt *data);
+void parse_file(char *filename, t_minirt *data);
 int key_code(int code, t_minirt *data);
 int close_window(t_minirt *data);
+
+// Parsing utilities
+int is_valide_float(char *str);
+double ft_atof(char *str);
+//color
+void	init_l_s(t_l_s *data);
+void	clamp_color(t_color *color);
+int	pack_color(t_color color);
+//bump
+void	calculate_sphere_uv(t_point *point, t_object *obj, float *u, float *v);
+void	calculate_plane_uv(t_point *point, t_object *obj, float *u, float *v);
+void	calculate_cylinder_uv(t_point *point, t_object *obj, float *u, float *v);
+void	calculate_cone_uv(t_point *point, t_object *obj, float *u, float *v);
+void	get_uv_coordinates(t_point *point, t_object *obj, float *u, float *v);
+//render 
+t_vec3 get_cone_normal(t_vec3 intersection_point, t_object *cone);
+// float vec_length(t_vec3 v);
+// t_vec3 normalize(t_vec3 v);
+// t_vec3 sub_vec(t_vec3 a, t_vec3 b);
+// t_vec3 add_vec(t_vec3 a, t_vec3 b);
+// t_vec3 mul_vec(t_vec3 a, float b);
+// t_vec3 cross(t_vec3 a, t_vec3 b);
+// float dot(t_vec3 a, t_vec3 b);
+// float distance(t_vec3 a, t_vec3 b);
+// float check_descriminant(float a, float b, float c);
+// float intersect_sphere(t_minirt *data, t_vec3 ray_direction, t_object *current);
+// float intersect_plane(t_minirt *data, t_vec3 ray_direction, t_object *current);
+// float intersect_cylinder(t_minirt *data, t_vec3 ray_direction, t_object *current);
+// float intersect_cone(t_minirt *data, t_vec3 ray_direction, t_object *current);
+// float	intersect_sphere_unified(t_vec3 ray_origin, t_vec3 ray_direction,
+// 	t_object *sphere);
+// float	intersect_cylinder_unified(t_vec3 ray_origin, t_vec3 ray_direction,
+// 	t_object *current);
+// float	calculate_cylinder_intersection(float a, float b, float c,
+// 	t_vec3 ray_origin, t_vec3 ray_direction, t_object *current,
+// 	t_vec3 axis);
+// float	handle_cylinder_degenerate(float c, t_vec3 ray_origin,
+// 	t_vec3 ray_direction, t_object *current, t_vec3 axis);
+// float	validate_cylinder_height(float t, t_vec3 ray_origin,
+// 	t_vec3 ray_direction, t_object *current, t_vec3 axis);
+// float	check_cylinder_heights(float t1, float t2, t_vec3 ray_origin,
+// 	t_vec3 ray_direction, t_object *current, t_vec3 axis);
+// float	intersect_cone_unified(t_vec3 ray_origin, t_vec3 ray_direction,
+// 	t_object *current);
+// void	setup_cone_vars(t_cone_vars *vars, t_vec3 ray_origin,
+// 	t_object *current);
+// float	calculate_cone_coefficients(t_cone_vars *vars, t_vec3 ray_origin,
+// 	t_vec3 ray_direction);
+// float	calculate_discriminant(t_cone_vars *vars, t_vec3 ray_direction);
+// int		validate_cone_intersection(float t, t_vec3 ray_origin,
+// t_vec3 ray_direction, t_cone_vars *vars);
+// t_vec3	calculate_ray_direction(t_minirt *data, float screen_x, float screen_y);
+// t_point	initialize_point(void);
+// void	render_pixel(t_minirt *data, int x, int y);
+// t_vec3	calculate_surface_normal(t_point *point);
+// void	apply_surface_effects(t_point *point, t_vec3 normal);
+// t_color	get_surface_color(t_point *point);
+// void calculate_sphere_coords(t_point *point, t_object *obj, float *u, float *v);
+// void calculate_plane_coords(t_point *point, t_object *obj, float *u, float *v);
+// t_color get_texture_color(t_point *point, t_object *obj);
+// void calculate_cylinder_coords(t_point *point, t_object *obj, float *u, float *v);
+// void calculate_cone_coords(t_point *point, t_object *obj, float *u, float *v);
+// t_color sample_texture(mlx_texture_t *texture, float u, float v);
+// void	calculate_texture_coords(t_point *point, t_object *obj, float *u, float *v);
+// void	draw_circle(t_minirt *data, int cx, int cy, float radius, int color);
+// t_vec3 create_vec(int a, int b, int c);
+// void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
+// int	is_valide_float(char *str);
+// double	ft_atof(char *str);
+// void parse_file(char *filename, t_minirt *data);
+// void rays_setup(t_minirt *data);
+// int key_code(int code, t_minirt *data);
+// int close_window(t_minirt *data);
 #endif

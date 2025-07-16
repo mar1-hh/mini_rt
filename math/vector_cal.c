@@ -1,24 +1,25 @@
 #include "../minirt.h"
 
-// t_vector    *add_vector(t_vector *a, t_vector *b)
-// {
-// 	t_vector	*new;
-
-// 	new = malloc(sizeof(t_vector));
-// 	new->x = a->x + b->x;
-// 	new->y = a->y + b->y;
-// 	new->z = a->z + b->z;
-// 	return (new);
-// }
-
-// t_vector	*normalize(t_vector dir)
-// {
-// 	t_vector	*new;
-// 	float		len;
-
-// 	len = sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-// 	new->x = dir.x / len;
-// 	new->y = dir.y / len;
-// 	new->z = dir.z / len;
-// 	return (new);
-// }
+float vec_length(t_vec3 v)
+{
+	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+t_vec3 normalize(t_vec3 v)
+{
+	float len = vec_length(v);
+	if (len < 1e-6f)
+		return v;
+	return (t_vec3){v.x / len, v.y / len, v.z / len};
+}
+t_vec3 sub_vec(t_vec3 a, t_vec3 b)
+{
+	return (t_vec3){a.x - b.x, a.y - b.y, a.z - b.z};
+}
+t_vec3 add_vec(t_vec3 a, t_vec3 b)
+{
+	return (t_vec3){a.x + b.x, a.y + b.y, a.z + b.z};
+}
+t_vec3 mul_vec(t_vec3 a, float b)
+{
+	return (t_vec3){a.x * b, a.y * b, a.z * b};
+}

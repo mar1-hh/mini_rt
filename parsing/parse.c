@@ -1,8 +1,4 @@
 #include "../minirt.h"
-#include <stdio.h>
-#include <string.h>
-#include <sys/fcntl.h>
-#include <unistd.h>
 
 int	ft_isspace(char str)
 {
@@ -101,18 +97,39 @@ void	parse_camera(char *line, t_camera *camera)
 	skip_space(&line);
 	camera->fov = ft_atof(line);
 }
+
 int	check_texture_type(char *texture)
 {
-	if (strncmp(texture, "checker", 7) == 0)
+	if (ft_strncmp(texture, "checker", 7) == 0)
 		return (CHECKER);
-	else if (strncmp(texture, "bump", 4) == 0)
+	else if (ft_strncmp(texture, "bump", 4) == 0)
 		return (BUMP);
 	else
 		return (NONE);
 }
+
+void	handling_pump_tex(char **line, t_object *object)
+{
+	char	*path;
+
+	if (object->texture == BUMP)
+	{
+		skip_space(line);
+		path = ft_strdup_line(*line);
+		object->bump_texture = mlx_load_png(path);
+		if (!object->bump_texture)
+		{
+			printf("Error: Failed to load bump texture for plane: %s\n", path);
+			object->texture = NONE;
+		}
+		free(path);
+	}
+	else
+		object->bump_texture = NULL;
+}
+
 void	parse_plane(char *line, t_object *object)
 {
-	char *path;
 	object->type = PLANE;
 	if (line[0] == 'p' && line[1] == 'l')
 		line += 2;
@@ -130,35 +147,17 @@ void	parse_plane(char *line, t_object *object)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-	if (object->texture == BUMP)
-    {
-        skip_space(&line);
-        path = ft_strdup_line(line);
-        object->bump_texture = mlx_load_png(path);
-        if (!object->bump_texture)
-        {
-            printf("Error: Failed to load bump texture for plane: %s\n", path);
-            object->texture = NONE;
-        }
-        free(path);
-    }
-	else
-    {
-        object->bump_texture = NULL;
-    }
+	handling_pump_tex(&line, object);
 }
 
 
 void	parse_sphere(char *line, t_object *object, t_minirt *data)
 {
-	char	*path;
-
 	(void)data;
 	object->type = SPHERE;
 	if (line[0] == 's' && line[1] == 'p')
 		line += 2;
-	while (ft_isspace(*line))
-		line++;
+	skip_space(&line);
 	object->origin = parse_vec3(&line);
 	while (*line && !ft_isspace(*line))
 		line++;
@@ -177,18 +176,7 @@ void	parse_sphere(char *line, t_object *object, t_minirt *data)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-
-	if (object->texture == BUMP)
-	{
-		skip_space(&line);
-		path = ft_strdup_line(line);
-		object->bump_texture = mlx_load_png(path);
-		if (!object->bump_texture)
-			printf("Failed to load: %s\n", path);
-		free(path);
-}
-	else
-		object->bump_texture = NULL;
+	handling_pump_tex(&line, object);
 }
 
 void	parse_cylinder(char *line, t_object *object)
@@ -214,22 +202,7 @@ void	parse_cylinder(char *line, t_object *object)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-	if (object->texture == BUMP)
-    {
-        skip_space(&line);
-        char *path = ft_strdup_line(line);
-        object->bump_texture = mlx_load_png(path);
-        if (!object->bump_texture)
-        {
-            printf("Error: Failed to load bump texture for plane: %s\n", path);
-            object->texture = NONE;
-        }
-        free(path);
-    }
-	else
-    {
-        object->bump_texture = NULL;
-    }
+	handling_pump_tex(&line, object);
 }
 
 void	parse_cone(char *line, t_object *object)
@@ -255,32 +228,96 @@ void	parse_cone(char *line, t_object *object)
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
-	if (object->texture == BUMP)
-    {
-        skip_space(&line);
-        char *path = ft_strdup_line(line);
-        object->bump_texture = mlx_load_png(path);
-        if (!object->bump_texture)
-        {
-            printf("Error: Failed to load bump texture for plane: %s\n", path);
-            object->texture = NONE;
-        }
-        free(path);
-    }
+	handling_pump_tex(&line, object);
+}
+
+static void	add_light_to_list(t_minirt *data, t_light *new_light)
+{
+	t_light	*c_light;
+
+	if (!data->light)
+		data->light = new_light;
 	else
-    {
-        object->bump_texture = NULL;
-    }
+	{
+		c_light = data->light;
+		while (c_light->next)
+			c_light = c_light->next;
+		c_light->next = new_light;
+	}
+}
+
+static void	add_object_to_list(t_minirt *data, t_object *new)
+{
+	t_object	*current;
+
+	if (!data->objects)
+		data->objects = new;
+	else
+	{
+		current = data->objects;
+		while (current->next)
+			current = current->next;
+		current->next = new;
+	}
+}
+
+static void	parse_light_line(char *line, t_minirt *data)
+{
+	t_light	*new_light;
+
+	new_light = malloc(sizeof(t_light));
+	if (!new_light)
+		return ;
+	new_light->next = NULL;
+	add_light_to_list(data, new_light);
+	parse_light(line, new_light);
+}
+
+static void	parse_object_line(char *line, t_minirt *data)
+{
+	t_object	*new;
+
+	new = malloc(sizeof(t_object));
+	if (!new)
+		return ;
+	new->next = NULL;
+	add_object_to_list(data, new);
+	if (line[0] == 'p' && line[1] == 'l')
+		parse_plane(line, new);
+	else if (line[0] == 's' && line[1] == 'p')
+		parse_sphere(line, new, data);
+	else if (line[0] == 'c' && line[1] == 'y')
+		parse_cylinder(line, new);
+	else if (line[0] == 'c' && line[1] == 'o')
+		parse_cone(line, new);
+}
+
+static int	is_object_line(char *line)
+{
+	return ((line[0] == 'p' && line[1] == 'l')
+		|| (line[0] == 'c' && line[1] == 'y')
+		|| (line[0] == 's' && line[1] == 'p')
+		|| (line[0] == 'c' && line[1] == 'o'));
+}
+
+static void	process_line(char *line, t_minirt *data)
+{
+	while (ft_isspace(*line))
+		line++;
+	if (*line == 'A')
+		parse_ambient(line, &data->ambient);
+	else if (*line == 'L')
+		parse_light_line(line, data);
+	else if (*line == 'C')
+		parse_camera(line, &data->camera);
+	else if (is_object_line(line))
+		parse_object_line(line, data);
 }
 
 void	parse_file(char *filename, t_minirt *data)
 {
-	char		*line;
-	int			fd;
-	t_object	*current;
-	t_object	*new;
-	t_light		*c_light;
-	t_light		*new_light;
+	char	*line;
+	int		fd;
 
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
@@ -288,60 +325,13 @@ void	parse_file(char *filename, t_minirt *data)
 		write(2, "failed\n", 7);
 		return ;
 	}
-	while (69)
+	while (1)
 	{
 		line = get_next_line(fd);
 		if (!line)
 			break ;
-		while (ft_isspace(*line))
-			line++;
-		if (*line == 'A')
-			parse_ambient(line, &data->ambient);
-		if (*line == 'L')
-		{
-			new_light = malloc(sizeof(t_light));
-			if (!new_light)
-				return ;
-			new_light->next = NULL;
-			if (!data->light)
-				data->light = new_light;
-			else
-			{
-				c_light = data->light;
-				while (c_light->next)
-					c_light = c_light->next;
-				c_light->next = new_light;
-			}
-			parse_light(line, new_light);
-		}
-		if (*line == 'C')
-			parse_camera(line, &data->camera);
-		if ((line[0] == 'p' && line[1] == 'l') || (line[0] == 'c'
-				&& line[1] == 'y') || (line[0] == 's' && line[1] == 'p')
-			|| (line[0] == 'c' && line[1] == 'o'))
-		{
-			new = malloc(sizeof(t_object));
-			if (!new)
-				return ;
-			new->next = NULL;
-			if (!data->objects)
-				data->objects = new;
-			else
-			{
-				current = data->objects;
-				while (current->next)
-					current = current->next;
-				;
-				current->next = new;
-			}
-			if (line[0] == 'p' && line[1] == 'l')
-				parse_plane(line, new);
-			if (line[0] == 's' && line[1] == 'p')
-				parse_sphere(line, new, data);
-			if (line[0] == 'c' && line[1] == 'y')
-				parse_cylinder(line, new);
-			if (line[0] == 'c' && line[1] == 'o')
-				parse_cone(line, new);
-		}
+		process_line(line, data);
+		free(line);
 	}
+	close(fd);
 }

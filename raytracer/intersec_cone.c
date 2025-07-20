@@ -1,27 +1,5 @@
 #include "../minirt.h"
 
-float	handle_cone_degenerate(t_cone_vars *vars, t_vec3 ray_origin,
-    t_vec3 ray_direction)
-{
-    float	t;
-    t_vec3	p;
-    t_vec3	ap;
-    float	proj;
-
-    if (fabs(vars->b) < 1e-6f)
-        return (-1.0f);
-    t = -vars->c / vars->b;
-    if (t > 0.001f)
-    {
-        p = add_vec(ray_origin, mul_vec(ray_direction, t));
-        ap = sub_vec(p, vars->apex);
-        proj = dot(ap, mul_vec(vars->axis, -1));
-        if (proj >= 0 && proj <= vars->height)
-            return (t);
-    }
-    return (-1.0f);
-}
-
 int	check_cone_intersection(float t, t_vec3 ray_origin, t_vec3 ray_direction,
     t_cone_vars *vars)
 {
@@ -33,9 +11,9 @@ if (t > 0.001f)
 {
     p = add_vec(ray_origin, mul_vec(ray_direction, t));
     ap = sub_vec(p, vars->apex);
-    proj = dot(ap, mul_vec(vars->axis, -1));
+    proj = -dot(ap, vars->axis);
     if (proj >= 0 && proj <= vars->height)
-        return (1);
+        return 1;
 }
 return (0);
 }
@@ -56,6 +34,7 @@ float	cone_intersect_calc(t_cone_vars *vars, t_vec3 ray_origin,
     sqrt_discriminant = sqrt(discriminant);
     t1 = (-vars->b - sqrt_discriminant) / (2.0f * vars->a);
     t2 = (-vars->b + sqrt_discriminant) / (2.0f * vars->a);
+    
     if (check_cone_intersection(t1, ray_origin, ray_direction, vars))
         return (t1);
     if (check_cone_intersection(t2, ray_origin, ray_direction, vars))
@@ -63,18 +42,17 @@ float	cone_intersect_calc(t_cone_vars *vars, t_vec3 ray_origin,
     return (-1.0f);
 }
 float intersect_cone_unified(t_vec3 ray_origin, t_vec3 ray_direction,
-                           t_object *current)
+    t_object *current)
 {
     t_cone_vars vars;
-    setup_cone_vars(&vars, ray_origin, current);
-    return cone_intersect_calc(&vars, ray_origin, ray_direction);
-}
+    
+    vars.oc = sub_vec(ray_origin, current->origin);
+    vars.axis = normalize(current->normal);
+    vars.radius = current->diameter / 2.0f;
+    vars.height = current->height;
+    vars.apex = add_vec(current->origin, mul_vec(vars.axis, vars.height));
+    
+    calculate_cone_coefficients(&vars, ray_origin, ray_direction);
 
-void setup_cone_vars(t_cone_vars *vars, t_vec3 ray_origin, t_object *current)
-{
-    vars->oc = sub_vec(ray_origin, current->origin);
-    vars->axis = normalize(current->normal);
-    vars->radius = current->diameter / 2.0f;
-    vars->height = current->height;
-    vars->apex = add_vec(current->origin, mul_vec(vars->axis, vars->height));
+    return (cone_intersect_calc(&vars, ray_origin, ray_direction));
 }

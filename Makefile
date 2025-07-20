@@ -63,13 +63,14 @@ CFLAGS = -I MLX42/include
 RM = rm -f
 
 # Source files
-SRCS = main.c sphere.c event.c \
+SRCS = main.c event.c \
        parsing/float_parse.c parsing/parse.c \
        get_next_line/get_next_line.c get_next_line/get_next_line_utils.c \
        raytracer/rays.c raytracer/intersection.c raytracer/intersec_utils.c \
-       raytracer/intersec_shadows.c raytracer/texture.c raytracer/texture2.c raytracer/light.c raytracer/light2.c \
-       raytracer/render.c raytracer/handle_bump.c raytracer/intersec_cone.c raytracer/intersec_cone2.c\
-       math/vector_cal.c math/vector_cal2.c raytracer/handle_bump2.c raytracer/render2.c
+       raytracer/intersec_shadows.c raytracer/texture.c raytracer/light.c raytracer/light2.c \
+       raytracer/render.c raytracer/handle_bump.c raytracer/intersec_cone.c raytracer/intersec_cone2.c \
+       raytracer/shadow.c raytracer/normal_calc.c raytracer/checker.c raytracer/cone_utils.c \
+       math/vector_cal.c math/vector_cal2.c raytracer/handle_bump2.c
 
 SRCS_OBJ = ${SRCS:.c=.o}
 

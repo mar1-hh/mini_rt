@@ -1,46 +1,10 @@
 #include "../minirt.h"
 
-void calculate_cylinder_coords(t_point *point, t_object *obj, float *u, float *v)
-{
-    t_vec3 local_hit = sub_vec(point->origin, obj->origin);
-    float theta = atan2(local_hit.z, local_hit.x);
-    *u = (theta + M_PI) / (2 * M_PI);
-    *v = local_hit.y * 0.1;
-    *v = fmod(*v, 1.0);
-    if (*v < 0) *v += 1.0;
-}
-
-void calculate_cone_coords(t_point *point, t_object *obj, float *u, float *v)
-{
-    t_vec3 axis = normalize(obj->normal);
-    t_vec3 apex = add_vec(obj->origin, mul_vec(axis, obj->height));
-    t_vec3 local_hit = sub_vec(point->origin, apex);
-    
-    float theta = atan2(local_hit.z, local_hit.x);
-    *u = (theta + M_PI) / (2 * M_PI);
-    
-    float dist_from_apex = vec_length(local_hit);
-    *v = dist_from_apex / (obj->height * 1.41421f);
-    
-    *u = fmax(0.0f, fmin(1.0f, *u));
-    *v = fmax(0.0f, fmin(1.0f, *v));
-}
 void	calculate_texture_coords(t_point *point, t_object *obj, float *u, float *v)
 {
-    if (obj->type == SPHERE)
-        calculate_sphere_coords(point, obj, u, v);
-    else if (obj->type == PLANE)
-        calculate_plane_coords(point, obj, u, v);
-    else if (obj->type == CYLINDER)
-        calculate_cylinder_coords(point, obj, u, v);
-    else if (obj->type == CONE)
-        calculate_cone_coords(point, obj, u, v);
-    else
-    {
-        *u = 0.0f;
-        *v = 0.0f;
-    }
+    get_uv_coordinates(point, obj, u, v);
 }
+
 t_color	sample_texture(mlx_texture_t *texture, float u, float v)
 {
     int		tex_x;

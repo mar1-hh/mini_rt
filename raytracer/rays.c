@@ -29,7 +29,7 @@ t_vec3	generate_rays(t_minirt *data, int x, int y)
 }
 
 float	get_object_distance(t_minirt *data, t_vec3 ray_direction,
-			t_object *current)
+		t_object *current)
 {
 	float	distance;
 
@@ -45,7 +45,7 @@ float	get_object_distance(t_minirt *data, t_vec3 ray_direction,
 	return (distance);
 }
 t_point	set_closest_point(t_minirt *data, t_vec3 ray_direction,
-			t_object *closest_obj, float closest_distance)
+		t_object *closest_obj, float closest_distance)
 {
 	t_point	point;
 
@@ -53,8 +53,8 @@ t_point	set_closest_point(t_minirt *data, t_vec3 ray_direction,
 	{
 		point.distance = closest_distance;
 		point.hit_something = 1;
-		point.origin = add_vec(data->camera.origin,
-				mul_vec(ray_direction, closest_distance));
+		point.origin = add_vec(data->camera.origin, mul_vec(ray_direction,
+					closest_distance));
 		point.obj = closest_obj;
 	}
 	else

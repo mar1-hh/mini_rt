@@ -66,6 +66,7 @@ void	handle_checker(t_point *point, t_object *obj)
 	int		checker;
 
 	scale = 10.0f;
+	checker = 0;
 	if (obj->type == SPHERE)
 		checker = get_sphere_checker(point, obj, scale);
 	else if (obj->type == PLANE)
@@ -74,8 +75,6 @@ void	handle_checker(t_point *point, t_object *obj)
 		checker = get_cylinder_checker(point, obj, scale);
 	else if (obj->type == CONE)
 		checker = get_cone_checker(point, obj, scale);
-	else
-		checker = 0;
 	if (checker % 2 == 0)
 	{
 		point->color.r = 255;

@@ -1,7 +1,7 @@
 #include "../minirt.h"
 
 int	is_shadow(t_minirt *data, t_point point, t_vec3 light_dir_n,
-	t_vec3 origin_light)
+		t_vec3 origin_light)
 {
 	float		max_distance;
 	float		distance;

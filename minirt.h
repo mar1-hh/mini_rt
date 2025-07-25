@@ -1,4 +1,3 @@
-
 #ifndef MINIRT_H
 #define MINIRT_H
 
@@ -47,6 +46,12 @@ typedef struct s_color
 	float g;
 	float b;
 }   t_color;
+
+typedef struct s_txt
+{
+	int	tex_x;
+	int	tex_y;
+}	t_txt;
 
 typedef struct s_object
 {
@@ -142,6 +147,20 @@ typedef struct s_l_s
 	t_vec3  view_dir;
 }   t_l_s;
 
+typedef struct	s_cyhelp
+{
+	t_vec3	ray_origin;
+	t_vec3	ray_direction;
+	t_object	*current;
+	t_vec3		axis;
+}	t_cyhelp;
+
+typedef struct	s_lih
+{
+	t_vec3	normal;
+	t_color	surface_color;
+}	t_lih;
+
 float vec_length(t_vec3 v);
 t_vec3 normalize(t_vec3 v);
 t_vec3 sub_vec(t_vec3 a, t_vec3 b);
@@ -172,14 +191,11 @@ float intersect_sphere_unified(t_vec3 ray_origin, t_vec3 ray_direction, t_object
 float intersect_cylinder_unified(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current);
 float intersect_cone_unified(t_vec3 ray_origin, t_vec3 ray_direction, t_object *current);
 
-float calculate_cylinder_intersection(float a, float b, float c, t_vec3 ray_origin, 
-                                    t_vec3 ray_direction, t_object *current, t_vec3 axis);
-float handle_cylinder_degenerate(float c, t_vec3 ray_origin, t_vec3 ray_direction, 
-                                t_object *current, t_vec3 axis);
+float calculate_cylinder_intersection(float a, float b, float c, t_cyhelp cyhelp);
+float handle_cylinder_degenerate(float c);
 float validate_cylinder_height(float t, t_vec3 ray_origin, t_vec3 ray_direction, 
                               t_object *current, t_vec3 axis);
-float check_cylinder_heights(float t1, float t2, t_vec3 ray_origin, t_vec3 ray_direction, 
-                            t_object *current, t_vec3 axis);
+float check_cylinder_heights(float t1, float t2, t_cyhelp cyhelp);
 
 float   cone_intersect_calc(t_cone_vars *vars, t_vec3 ray_origin, t_vec3 ray_direction);
 int     check_cone_intersection(float t, t_vec3 ray_origin, t_vec3 ray_direction, t_cone_vars *vars);
@@ -206,7 +222,7 @@ t_color get_surface_color(t_point *point);
 void my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data);
 
 void process_all_lights(t_minirt *data, t_l_s *s_l_data, t_point *point, 
-	t_vec3 normal, t_color surface_color);
+	t_lih *ligh);
 void color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj, t_color *c_light);
 void clr_reflection(t_l_s *s_l_data);
 t_vec3 reflect(t_vec3 incident, t_vec3 normal);

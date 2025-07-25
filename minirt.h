@@ -200,7 +200,6 @@ t_vec3 add_vec(t_vec3 a, t_vec3 b);
 t_vec3 mul_vec(t_vec3 a, float b);
 t_vec3 cross(t_vec3 a, t_vec3 b);
 float dot(t_vec3 a, t_vec3 b);
-float distance(t_vec3 a, t_vec3 b);
 t_vec3 create_vec(int a, int b, int c);
 
 t_vec3 get_cylinder_normal(t_vec3 intersection_point, t_object *cylinder);
@@ -283,6 +282,12 @@ void parse_cylinder(char *line, t_object *object);
 void parse_cone(char *line, t_object *object);
 void parse_light_line(char *line, t_minirt *data);
 void parse_object_line(char *line, t_minirt *data);
+
+void cleanup_lights(t_light *light);
+void cleanup_objects(t_object *objects);
+void cleanup_data(t_minirt *data);
+int is_dotrt(char *str);
+void init_data(t_minirt *data);
 
 int is_valide_float(char *str);
 double ft_atof(char *str);

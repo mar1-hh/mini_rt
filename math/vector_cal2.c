@@ -13,13 +13,6 @@ float dot(t_vec3 a, t_vec3 b)
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-float distance(t_vec3 a, t_vec3 b)
-{
-	float dx = b.x - a.x;
-	float dy = b.y - a.y;
-	float dz = b.z - a.z;
-	return sqrtf(dx*dx + dy*dy + dz*dz);
-}
 float check_descriminant(float a, float b, float c)
 {
 	float discriminant = b * b - 4 * a * c;

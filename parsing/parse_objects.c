@@ -45,7 +45,7 @@ void	parse_plane(char *line, t_object *object)
 	skip_exept(&line, ',');
 	object->color.g = (float)atoi(line);
 	skip_exept(&line, ',');
-	object->color.b = (float)atoi(line);
+	object->color.b = (float)atoi(line);   
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);

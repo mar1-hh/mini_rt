@@ -41,5 +41,6 @@ void	parse_file(char *filename, t_minirt *data)
 		process_line(line, data);
 		free(line);
 	}
+	free(line);
 	close(fd);
 }

@@ -154,7 +154,39 @@ typedef struct	s_cyhelp
 	t_object	*current;
 	t_vec3		axis;
 }	t_cyhelp;
-
+typedef struct  s_var_1
+{
+    float	height;
+	t_vec3	p1;
+	t_vec3	to_p1;
+	float	h1;
+	t_vec3	p2;
+	t_vec3	to_p2;
+	float	h2;
+}   t_var_1;
+typedef struct s_vars_2
+{
+    t_vec3		oc;
+	float		dot_rd_axis;
+	float		dot_oc_axis;
+	t_vec3		rd_perp;
+	t_vec3		oc_perp;
+	float		a;
+	float		b;
+	float		radius;
+	float		c;
+} t_var_2;
+typedef struct s_vars_3
+{
+    t_vec3	axis;
+	t_vec3	apex;
+	t_vec3	base_to_point;
+	float	height_proj;
+	t_vec3	axis_point;
+	t_vec3	radial;
+	float	radius_at_height;
+	t_vec3	normal;
+}   t_vars_3;
 typedef struct	s_lih
 {
 	t_vec3	normal;
@@ -234,6 +266,23 @@ void rays_setup(t_minirt *data);
 void parse_file(char *filename, t_minirt *data);
 int key_code(int code, t_minirt *data);
 int close_window(t_minirt *data);
+
+int ft_isspace(char str);
+void skip_exept(char **line, char to_skip);
+void skip_space(char **line);
+t_vec3 parse_vec3(char **line);
+char *ft_strdup_line(char *line);
+void parse_ambient(char *line, t_ambient *ambient);
+void parse_light(char *line, t_light *light);
+void parse_camera(char *line, t_camera *camera);
+int check_texture_type(char *texture);
+void handling_pump_tex(char **line, t_object *object);
+void parse_plane(char *line, t_object *object);
+void parse_sphere(char *line, t_object *object, t_minirt *data);
+void parse_cylinder(char *line, t_object *object);
+void parse_cone(char *line, t_object *object);
+void parse_light_line(char *line, t_minirt *data);
+void parse_object_line(char *line, t_minirt *data);
 
 int is_valide_float(char *str);
 double ft_atof(char *str);

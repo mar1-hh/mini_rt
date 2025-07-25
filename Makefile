@@ -19,7 +19,7 @@ SRCS_OBJ = ${SRCS:.c=.o}
 LIBFT = ft_libft/libft.a
 MLX42_LIB = MLX42/build/libmlx42.a
 
-MLX_FLAGS = MLX42/build/libmlx42.a -L/Users/msaadaou/.brew/opt/glfw/lib -lglfw \
+MLX_FLAGS = MLX42/build/libmlx42.a -L/goinfre/msaadaou/homebrew/opt/glfw/lib -lglfw -I/goinfre/msaadaou/homebrew/opt/glfw/include\
 	-ldl -pthread -lm \
 	-framework Cocoa -framework OpenGL -framework IOKit -framework CoreFoundation
 

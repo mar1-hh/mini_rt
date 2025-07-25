@@ -1,4 +1,4 @@
-#include "../minirt.h"
+ #include "../minirt.h"
 
 int	check_cone_intersection(float t, t_vec3 ray_origin, t_vec3 ray_direction,
 		t_cone_vars *vars)

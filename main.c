@@ -40,9 +40,15 @@ int is_dotrt(char *str)
     return  1;
 }
 
+void ll()
+{
+    system("leaks miniRT");
+}
+
 int main(int ac, char **av)
 {
     t_minirt    data;
+    atexit(ll);
 
     if (ac != 2)
     {

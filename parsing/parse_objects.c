@@ -41,11 +41,11 @@ void	parse_plane(char *line, t_object *object)
 	skip_space(&line);
 	object->normal = parse_vec3(&line);
 	skip_space(&line);
-	object->color.r = (float)atoi(line);
+	object->color.r = (float)ft_atoi(line);
 	skip_exept(&line, ',');
-	object->color.g = (float)atoi(line);
+	object->color.g = (float)ft_atoi(line);
 	skip_exept(&line, ',');
-	object->color.b = (float)atoi(line);
+	object->color.b = (float)ft_atoi(line);
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
@@ -69,11 +69,11 @@ void	parse_sphere(char *line, t_object *object, t_minirt *data)
 		line++;
 	while (ft_isspace(*line))
 		line++;
-	object->color.r = (float)atoi(line);
+	object->color.r = (float)ft_atoi(line);
 	skip_exept(&line, ',');
-	object->color.g = (float)atoi(line);
+	object->color.g = (float)ft_atoi(line);
 	skip_exept(&line, ',');
-	object->color.b = (float)atoi(line);
+	object->color.b = (float)ft_atoi(line);
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);
@@ -95,11 +95,11 @@ void	parse_cylinder(char *line, t_object *object)
 	skip_space(&line);
 	object->height = ft_atof(line);
 	skip_space(&line);
-	object->color.r = (float)atoi(line);
+	object->color.r = (float)ft_atoi(line);
 	skip_exept(&line, ',');
-	object->color.g = (float)atoi(line);
+	object->color.g = (float)ft_atoi(line);
 	skip_exept(&line, ',');
-	object->color.b = (float)atoi(line);
+	object->color.b = (float)ft_atoi(line);
 	object->next = NULL;
 	skip_space(&line);
 	object->texture = check_texture_type(line);

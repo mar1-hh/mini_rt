@@ -63,7 +63,7 @@ re: fclean all
 
 # RM = rm -f
 
-# SRCS = main.c event.c \
+# SRCS = main.c  \
 #        parsing/float_parse.c parsing/parse.c \
 #        get_next_line/get_next_line.c get_next_line/get_next_line_utils.c \
 #        raytracer/rays.c raytracer/intersection.c raytracer/intersec_utils.c \
@@ -126,7 +126,7 @@ CFLAGS = -I MLX42/include
 RM = rm -f
 
 # Source files
-SRCS = main.c event.c \
+SRCS = main.c  \
        parsing/float_parse.c parsing/parse_utils.c parsing/parse_basic.c parsing/parse_objects.c parsing/parse_objects2.c parsing/parse_file.c \
        get_next_line/get_next_line.c get_next_line/get_next_line_utils.c \
        raytracer/rays.c raytracer/intersection.c raytracer/intersec_utils.c \

@@ -4,11 +4,11 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
-# include "get_next_line/get_next_line.h"
+# include "../get_next_line/get_next_line.h"
 # include <math.h>
-# include "ft_libft/libft.h"
+# include "../ft_libft/libft.h"
 # include <stdbool.h>
-# include "MLX42/include/MLX42/MLX42.h"
+# include "../MLX42/include/MLX42/MLX42.h"
 #define MAX_F (1.0f / 0.0f)
 
 # define WIDTH 1000

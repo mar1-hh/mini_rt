@@ -23,6 +23,12 @@ void    my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data)
     ptr = data->addr + (y * data->line_length + x * (data->bits_per_pexel / 8));
     *(unsigned int*)ptr = color;
 }
+
+void ll()
+{
+    system("leaks miniRT");
+}
+
 int main(int ac, char **av)
 {
     t_minirt    data;

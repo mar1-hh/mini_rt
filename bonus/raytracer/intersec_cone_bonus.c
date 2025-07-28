@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   intersec_cone_bonus.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:50:18 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 17:55:36 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 int	check_cone_intersection(float t, t_vec3 ray_origin, t_vec3 ray_direction,
@@ -40,6 +52,7 @@ float	cone_intersect_calc(t_cone_vars *vars, t_vec3 ray_origin,
 		return (t2);
 	return (-1.0f);
 }
+
 float	intersect_cone_unified(t_vec3 ray_origin, t_vec3 ray_direction,
 		t_object *current)
 {

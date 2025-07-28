@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:58 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:08:59 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:20:33 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ void	process_all_lights(t_minirt *data, t_l_s *s_l_data, t_point *point,
 		s_l_data->light = s_l_data->light->next;
 	}
 }
+
 void	color_handle_ambient(t_minirt *data, t_l_s *s_l_data, t_color *obj,
 		t_color *c_light)
 {
@@ -59,6 +60,7 @@ void	color_handle_ambient(t_minirt *data, t_l_s *s_l_data, t_color *obj,
 	s_l_data->color.g += obj->g * c_light->g / 255.0f * data->ambient.ratio;
 	s_l_data->color.b += obj->b * c_light->b / 255.0f * data->ambient.ratio;
 }
+
 int	handle_light_shadow(t_minirt *data, t_point *point, t_vec3 normal)
 {
 	t_l_s	s_l_data;

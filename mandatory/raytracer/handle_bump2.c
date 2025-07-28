@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:29 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:08:30 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:15:41 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,7 @@ void	calculate_cone_uv(t_point *point, t_object *obj, float *u, float *v)
 	*u = fmax(0.0f, fmin(1.0f, *u));
 	*v = fmax(0.0f, fmin(1.0f, *v));
 }
+
 void	get_uv_coordinates(t_point *point, t_object *obj, float *u, float *v)
 {
 	if (obj->type == SPHERE)

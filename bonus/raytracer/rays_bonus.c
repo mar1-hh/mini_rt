@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   rays_bonus.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:57:03 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 18:11:44 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 t_vec3	calculate_ray_direction(t_minirt *data, float screen_x, float screen_y)
@@ -14,6 +26,7 @@ t_vec3	calculate_ray_direction(t_minirt *data, float screen_x, float screen_y)
 	return (normalize(add_vec(forward, add_vec(mul_vec(right, screen_x),
 					mul_vec(up, screen_y)))));
 }
+
 t_vec3	generate_rays(t_minirt *data, int x, int y)
 {
 	float	aspect_ratio;
@@ -44,6 +57,7 @@ float	get_object_distance(t_minirt *data, t_vec3 ray_direction,
 		distance = intersect_cone(data, ray_direction, current);
 	return (distance);
 }
+
 t_point	set_closest_point(t_minirt *data, t_vec3 ray_direction,
 		t_object *closest_obj, float closest_distance)
 {
@@ -66,6 +80,7 @@ t_point	set_closest_point(t_minirt *data, t_vec3 ray_direction,
 	}
 	return (point);
 }
+
 t_point	find_closest_inter(t_minirt *data, t_vec3 ray_direction)
 {
 	t_object	*current;

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_bump_bonus.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:50:08 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 17:50:09 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 static void	get_texture_coordinates(t_object *obj, float u, float v, t_txt *txt)

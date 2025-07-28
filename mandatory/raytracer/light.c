@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:56 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:08:57 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:20:18 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ int	pack_color(t_color color)
 	uint32_t	a;
 
 	a = 255;
-	return (((int)color.r << 24) | ((int)color.g << 16) | ((int)color.b << 8) | a);
+	return (((int)color.r << 24) | ((int)color.g << 16)
+		| ((int)color.b << 8) | a);
 }
 
 void	color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj,

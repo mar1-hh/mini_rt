@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:52 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:08:53 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:17:21 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ float	handle_cylinder_degenerate(float c)
 
 float	check_cylinder_heights(float t1, float t2, t_cyhelp cyhelp)
 {
-	t_var_1 vars;
+	t_var_1	vars;
 
 	vars.height = cyhelp.current->height;
 	if (t1 > 0.001f)
@@ -64,7 +64,7 @@ float	intersect_cylinder_unified(t_vec3 ray_origin, t_vec3 ray_direction,
 		t_object *current)
 {
 	t_cyhelp	cyhelp;
-	t_var_2     vars;
+	t_var_2		vars;
 
 	vars.oc = sub_vec(ray_origin, current->origin);
 	cyhelp.axis = normalize(current->normal);
@@ -73,7 +73,8 @@ float	intersect_cylinder_unified(t_vec3 ray_origin, t_vec3 ray_direction,
 	cyhelp.ray_origin = ray_origin;
 	vars.dot_rd_axis = dot(ray_direction, cyhelp.axis);
 	vars.dot_oc_axis = dot(vars.oc, cyhelp.axis);
-	vars.rd_perp = sub_vec(ray_direction, mul_vec(cyhelp.axis, vars.dot_rd_axis));
+	vars.rd_perp = sub_vec(ray_direction, mul_vec(cyhelp.axis,
+				vars.dot_rd_axis));
 	vars.oc_perp = sub_vec(vars.oc, mul_vec(cyhelp.axis, vars.dot_oc_axis));
 	vars.a = dot(vars.rd_perp, vars.rd_perp);
 	vars.b = 2.0f * dot(vars.oc_perp, vars.rd_perp);

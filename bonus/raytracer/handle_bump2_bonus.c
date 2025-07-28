@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_bump2_bonus.c                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:50:13 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 18:02:34 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 void	calculate_sphere_uv(t_point *point, t_object *obj, float *u, float *v)
@@ -65,6 +77,7 @@ void	calculate_cone_uv(t_point *point, t_object *obj, float *u, float *v)
 	*u = fmax(0.0f, fmin(1.0f, *u));
 	*v = fmax(0.0f, fmin(1.0f, *v));
 }
+
 void	get_uv_coordinates(t_point *point, t_object *obj, float *u, float *v)
 {
 	if (obj->type == SPHERE)

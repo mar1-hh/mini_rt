@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:44 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:08:45 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:17:11 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,18 +34,19 @@ float	intersect_plane_shadow(t_minirt *data, t_vec3 ray_direction,
 		t_object *current)
 {
 	float	denom;
-	t_vec3	L;
+	t_vec3	l;
 	float	t;
 
 	denom = dot(current->normal, ray_direction);
 	if (fabs(denom) < 1e-6)
 		return (-1);
-	L = sub_vec(current->origin, data->camera.origin);
-	t = dot(current->normal, L) / denom;
+	l = sub_vec(current->origin, data->camera.origin);
+	t = dot(current->normal, l) / denom;
 	if (t < 0)
 		return (-1.0f);
 	return (t);
 }
+
 float	get_shadow_distance(t_minirt *data, t_point point, t_vec3 light_dir_n,
 		t_object *obj)
 {

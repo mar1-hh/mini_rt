@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:40 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:08:41 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:16:25 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ float	calculate_discriminant(t_cone_vars *vars, t_vec3 ray_direction)
 		* vars->oa_dot_axis;
 	return (vars->b * vars->b - 4 * vars->a * vars->c);
 }
+
 float	calculate_cone_coefficients(t_cone_vars *vars, t_vec3 ray_origin,
 		t_vec3 ray_direction)
 {

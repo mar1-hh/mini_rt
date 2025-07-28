@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   light_bonus.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:56:40 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 18:11:22 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 t_color	get_surface_color(t_point *point)
@@ -32,7 +44,8 @@ int	pack_color(t_color color)
 	uint32_t	a;
 
 	a = 255;
-	return (((int)color.r << 24) | ((int)color.g << 16) | ((int)color.b << 8) | a);
+	return (((int)color.r << 24) | ((int)color.g << 16)
+		| ((int)color.b << 8) | a);
 }
 
 void	color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj,

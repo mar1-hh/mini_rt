@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse_utils_bonus.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:42:22 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 17:42:26 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 int	ft_isspace(char str)
@@ -38,9 +50,9 @@ t_vec3	parse_vec3(char **line)
 
 char	*ft_strdup_line(char *line)
 {
-	int	i;
-	int	j;
-	char *ptr;
+	int		i;
+	int		j;
+	char	*ptr;
 
 	i = 0;
 	while (line[i] && line[i] != '\n')

@@ -6,11 +6,11 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:33 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:08:34 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:15:57 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
- #include "../minirt.h"
+#include "../minirt.h"
 
 int	check_cone_intersection(float t, t_vec3 ray_origin, t_vec3 ray_direction,
 		t_cone_vars *vars)
@@ -52,6 +52,7 @@ float	cone_intersect_calc(t_cone_vars *vars, t_vec3 ray_origin,
 		return (t2);
 	return (-1.0f);
 }
+
 float	intersect_cone_unified(t_vec3 ray_origin, t_vec3 ray_direction,
 		t_object *current)
 {

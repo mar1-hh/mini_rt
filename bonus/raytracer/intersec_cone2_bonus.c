@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   intersec_cone2_bonus.c                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:55:41 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 18:02:49 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 float	calculate_discriminant(t_cone_vars *vars, t_vec3 ray_direction)
@@ -14,6 +26,7 @@ float	calculate_discriminant(t_cone_vars *vars, t_vec3 ray_direction)
 		* vars->oa_dot_axis;
 	return (vars->b * vars->b - 4 * vars->a * vars->c);
 }
+
 float	calculate_cone_coefficients(t_cone_vars *vars, t_vec3 ray_origin,
 		t_vec3 ray_direction)
 {

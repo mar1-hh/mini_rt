@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   texture_bonus.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:57:24 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 18:13:23 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt_bonus.h"
 
 void	calculate_texture_coords(t_point *point, t_object *obj, float *u,
@@ -25,6 +37,7 @@ t_color	sample_texture(mlx_texture_t *texture, float u, float v)
 	texture_color.b = pixels[index + 2];
 	return (texture_color);
 }
+
 t_color	get_texture_color(t_point *point, t_object *obj)
 {
 	float	u;

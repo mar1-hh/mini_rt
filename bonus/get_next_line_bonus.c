@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/28 17:44:02 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/28 17:44:04 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line_bonus.h"
 
 char	*ft_strjoin(char const *s1, char const *s2)
@@ -28,13 +40,13 @@ char	*ft_strchr_or_free_rem(const char *s, int c, char **reminder)
 	char	*string;
 	char	ch;
 
-	if (!s && c == 0) 
+	if (!s && c == 0)
 	{
 		free(*reminder);
 		*reminder = NULL;
 		return (NULL);
 	}
-	else 
+	else
 	{
 		i = 0;
 		string = (char *)s;
@@ -91,7 +103,7 @@ static char	*set_reminder(char *line)
 		return (0);
 	k = ft_strlen(line);
 	reminder = ft_substr(line, i + 1, k - i - 1);
-	if (!reminder || !*reminder) 
+	if (!reminder || !*reminder)
 		return (ft_strchr_or_free_rem(NULL, 0, &reminder));
 	line[i + 1] = '\0';
 	return (reminder);

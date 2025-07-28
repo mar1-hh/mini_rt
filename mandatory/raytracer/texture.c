@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:09:18 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/25 12:09:19 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/27 19:21:22 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ t_color	sample_texture(mlx_texture_t *texture, float u, float v)
 	texture_color.b = pixels[index + 2];
 	return (texture_color);
 }
+
 t_color	get_texture_color(t_point *point, t_object *obj)
 {
 	float	u;

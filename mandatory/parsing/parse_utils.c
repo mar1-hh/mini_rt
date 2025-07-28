@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse_utils.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/27 19:14:22 by msaadaou          #+#    #+#             */
+/*   Updated: 2025/07/27 19:15:01 by msaadaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minirt.h"
 
 int	ft_isspace(char str)
@@ -38,9 +50,9 @@ t_vec3	parse_vec3(char **line)
 
 char	*ft_strdup_line(char *line)
 {
-	int	i;
-	int	j;
-	char *ptr;
+	int		i;
+	int		j;
+	char	*ptr;
 
 	i = 0;
 	while (line[i] && line[i] != '\n')

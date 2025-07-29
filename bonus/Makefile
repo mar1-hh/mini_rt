@@ -1,7 +1,7 @@
 NAME = miniRT_bonus
 
 CC = cc
-CFLAGS = -I ../MLX42/include
+CFLAGS = -I ../MLX42/include -Wall -Wextra -Werror
 
 RM = rm -f
 
@@ -19,7 +19,7 @@ SRCS_OBJ = ${SRCS:.c=.o}
 LIBFT = ../ft_libft/libft.a
 MLX_LIB = ../MLX42/build/libmlx42.a
 
-MLX_FLAGS = ${MLX_LIB} -lglfw -ldl -pthread -lm
+MLX_FLAGS = ${MLX_LIB} -L/goinfre/msaadaou/homebrew/opt/glfw/lib -lglfw -ldl -pthread -lm
 
 all: ${NAME}
 

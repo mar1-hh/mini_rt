@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/25 12:08:44 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/27 19:17:11 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/29 14:51:06 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,9 @@ float	get_shadow_distance(t_minirt *data, t_point point, t_vec3 light_dir_n,
 {
 	float	distance;
 
+	(void)data;
 	if (obj->type == SPHERE)
 		distance = intersect_sphere_shadow(point.origin, light_dir_n, obj);
-	else if (obj->type == PLANE)
-		distance = intersect_plane_shadow(data, light_dir_n, obj);
 	else if (obj->type == CYLINDER)
 		distance = intersect_cylinder_shadow(point.origin, light_dir_n, obj);
 	else if (obj->type == CONE)

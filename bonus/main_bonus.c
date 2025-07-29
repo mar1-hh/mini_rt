@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/28 17:44:26 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/28 17:44:41 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/29 14:47:21 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,13 @@ int	ft_strcmp(char *str1, char *str2)
 	return (0);
 }
 
-void	my_mlx_p_pix(unsigned int color, int x, int y, t_minirt *data)
+void	handle_key(mlx_key_data_t keydata, void *param)
 {
-	char	*ptr;
+	t_minirt	*data;
 
-	ptr = data->addr + (y * data->line_length + x * (data->bits_per_pexel / 8));
-	*(unsigned int *)ptr = color;
+	data = (t_minirt *)param;
+	if (keydata.key == MLX_KEY_ESCAPE && keydata.action == MLX_PRESS)
+		mlx_close_window(data->mlx);
 }
 
 int	main(int ac, char **av)
@@ -58,6 +59,7 @@ int	main(int ac, char **av)
 	}
 	parse_file(av[1], &data);
 	rays_setup(&data);
+	mlx_key_hook(data.mlx, handle_key, &data);
 	mlx_loop(data.mlx);
 	cleanup_data(&data);
 	return (0);

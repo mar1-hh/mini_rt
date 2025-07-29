@@ -30,6 +30,6 @@ fclean:
 	@echo "Full cleaning bonus version..."
 	@make fclean -C bonus --no-print-directory
 
-# re: fclean all
+re: fclean all
 
 .PHONY: all bonus clean fclean re

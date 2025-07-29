@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/28 17:50:08 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/28 17:50:09 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/29 14:49:36 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,7 @@ static void	get_rgb_values(t_object *obj, t_txt txt, t_color *clr)
 	clr->b = (pixels[index + 2] / 255.0f - 0.5f) * 2.0f;
 }
 
-static t_vec3	calculate_bump_displacement(t_object *obj, float u, float v,
-		t_vec3 original_normal)
+static t_vec3	calculate_bump_displacement(t_object *obj, float u, float v)
 {
 	t_txt	txt;
 	t_color	clr;
@@ -69,6 +68,6 @@ t_vec3	handle_bump(t_point *point, t_object *obj, t_vec3 original_normal)
 	if (!obj->bump_texture)
 		return (original_normal);
 	get_uv_coordinates(point, obj, &u, &v);
-	displacement = calculate_bump_displacement(obj, u, v, original_normal);
+	displacement = calculate_bump_displacement(obj, u, v);
 	return (apply_bump_to_normal(displacement, original_normal));
 }

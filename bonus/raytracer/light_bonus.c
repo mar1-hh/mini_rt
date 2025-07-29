@@ -6,7 +6,7 @@
 /*   By: msaadaou <msaadaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/28 17:56:40 by msaadaou          #+#    #+#             */
-/*   Updated: 2025/07/28 18:11:22 by msaadaou         ###   ########.fr       */
+/*   Updated: 2025/07/29 14:48:44 by msaadaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ int	pack_color(t_color color)
 void	color_handle_help(t_minirt *data, t_l_s *s_l_data, t_color *obj,
 		t_color *c_light)
 {
+	(void) data;
 	s_l_data->color.r += obj->r * c_light->r / 255.0f * s_l_data->lfar9
 		* s_l_data->light->ratio;
 	s_l_data->color.g += obj->g * c_light->g / 255.0f * s_l_data->lfar9

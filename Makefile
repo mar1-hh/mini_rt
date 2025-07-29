@@ -1,20 +1,16 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: mouka <mouka@student.42.fr>              +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/07/27 16:00:00 by mouka            #+#    #+#              #
-#    Updated: 2025/07/27 16:00:00 by mouka           ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+NAME = miniRT
 
-all:
+NAME_BONUS = miniRT_BONUS
+
+all: ${NAME}
+
+bonus: ${NAME_BONUS}
+
+${NAME}:
 	@echo "Building mandatory version..."
 	@make -C mandatory --no-print-directory
 
-bonus:
+${NAME_BONUS}:
 	@echo "Building bonus version..."
 	@make -C bonus --no-print-directory
 
